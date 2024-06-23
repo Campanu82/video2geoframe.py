@@ -1,0 +1,65 @@
+# Localization file for video2geoframes.py script
+# French (France)
+#
+# Last edition : 2024-06-22
+
+[ui]
+
+[ui.info]
+title = "# video2geoframes.py"
+intro = """Bienvenue dans le script video2geoframes.py !
+Ce script permet, à partir d'une vidéo et d'une trace GPS, de créer un ensemble de photos géotaguées."""
+end = "Fin du programme, appuyez sur Entrée pour fermer."
+paths_title = "## Chemins"
+parameters_title = "## Paramètres du traitement"
+metadatas = """{} ({} {}B)
+- Durée : {} s
+- Heure de début : {}.{}
+- Décalage horaire : {}"""
+
+[ui.units]
+cv2_tqdm = 'image(s)'
+
+[ui.parameters]
+toml_setting = "Paramétrage avec un fichier TOML ({}/{}) ? "
+
+timelapse = "Vidéo timelapse ({}/{}) ? "
+timelapse_fps = "Débit d'image du timelapse (image/s) [{}-{}] : "
+timelapse_fps_err = "Erreur... entrez un entier entre {} et {}."
+
+frame_samp = "Entrez l'espacement temporel des images en secondes [{}-{}] : "
+frame_samp_err = "'Erreur... veuillez entrer un nombre décimal entre {} et {}."
+
+frame_height = "Entrez la hauteur des images en pixels (ratio inchangé) [{}-{}] : "
+frame_height_err = "Erreur... veuillez entrer un nombre entier entre {} et {}."
+
+video_start_datetime = "Entrez l'horodatage du début de la vidéo au format ISO (exemple : 2023-09-18T22:00:02.000) : "
+video_start_datetime_err = "Erreur... l'horodatage entré est invalide."
+
+rec_timezone = "Entrez le décalage horaire par rapport à UTC (exemple pour CEST : +02:00) : "
+
+time_offset = "Entrez le décalage temporel entre la vidéo et le GPX en secondes [{}-{}] : "
+time_offset_err = "Erreur... veuillez entrer un nombre décimal entre {} et {}."
+
+[ui.paths]
+toml_file = "Entrez le chemin du fichier TOML : "
+video_file = "Entrez le chemin de la vidéo : "
+gps_track = "Entrez le chemin de la trace GPS : "
+output_folder = "Entrez le dossier de sortie : "
+
+path_err = "Erreur... le fichier n'existe pas."
+
+[ui.metadatas]
+make = "Entrez la marque du capteur : "
+model = "Entrez le modèle du capteur : "
+author = "Entrez l'auteur : "
+
+[processing]
+reading_metadatas = "Lecture des métadonnées de la vidéo..."
+sampling = "Extraction des images depuis la vidéo..."
+timestamping = "Définition de l'horodatage des images..."
+geotagging = "Géotaguage des images..."
+
+[user]
+agree = ["o", "oui"]
+disagree = ["n", "non"]

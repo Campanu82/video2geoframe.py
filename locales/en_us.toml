@@ -1,0 +1,65 @@
+# Localization file for video2geoframes.py script
+# English (US / World)
+#
+# Last edition : 2024-06-22
+
+[ui]
+
+[ui.info]
+title = "# video2geoframes.py"
+intro = """Welcome in video2geoframes.py script !
+This script is designed to create geotagged frames from video and GPX track."""
+end = "End of program, press Enter to quit."
+paths_title = "## Paths"
+parameters_title = "## Process parameters"
+metadata = """{} ({} {}B)\n
+- Duration : {} s\n
+- Start time : {}.{}\n
+- Time offset : {}"""
+
+[ui.units]
+cv2_tqdm = 'frame(s)'
+
+[ui.parameters]
+toml_setting²	 = "Setting with TOML file ({}/{}) ? "
+
+timelapse = "Timelapse video ({}/{}) ? "
+timelapse_fps = "Timelapse framerate (frame/s) [{}-{}] : "
+timelapse_fps_err = "Error... please enter a decimal between {} et {}."
+
+frame_samp = "Enter the frame sampling in seconds [{}-{}] : "
+frame_samp_err = "Error... please enter a decimal between {} and {}."
+
+frame_height = "Enter frame height in pixels (ratio unchanged) [{}-{}] : "
+frame_height_err = "Error... please enter an integer between {} and {}."
+
+video_start_datetime = "Enter video start datetime following ISO format (exemple : 2023-09-18T22:00:02.000) : "
+video_start_datetime_err = "Error... entered datetime is not valid."
+
+rec_timezone = "Enter time offset related to UTC (example for CEST : +02:00) : "
+
+time_offset = "Enter time offset between video and GPX in seconds [{}-{}] : "
+time_offset_err = "Error... please enter a decimal between {} and {}."
+
+[ui.paths]
+toml_file = "Enter TOML file path : "
+video_file = "Enter video path : "
+gps_track = "Enter GPS track path : "
+output_folder = "Enter output folder : "
+
+path_err = "Error... File doesn't exist."
+
+[ui.metadatas]
+make = "Enter the camera brand : "
+model = "Enter the camera model : "
+author = "Enter author name : "
+
+[processing]
+reading_metadatas = "Reading video metadatas..."
+sampling = "Extracting frames from video..."
+timestamping = "Setting timestamp on frames..."
+geotagging = "Geotagging frames..."
+
+[user]
+agree = ["y", "yes"]
+disagree = ["n", "no"]
