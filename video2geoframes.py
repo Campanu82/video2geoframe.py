@@ -8,7 +8,7 @@ Designed for contribution to street-level imagery projects like Mapillary or Pan
 
 __author__ = "Lucas MATHIEU (@campanu)"
 __license__ = "AGPL-3.0-or-later"
-__version__ = "2.0-alpha1"
+__version__ = "2.0-alpha2"
 __maintainer__ = "Lucas MATHIEU (@campanu)"
 __email__ = "campanu@luc-geo.fr"
 
@@ -262,7 +262,7 @@ else:
     model = input(locale_toml['ui']['metadatas']['model'])
     author = input(locale_toml['ui']['metadatas']['author'])
 
-# Getting video metadatas
+# Video metadatas extraction
 print('\n{}'.format(locale_toml['processing']['reading_metadatas']))
 
 video = cv2.VideoCapture(video_path)
@@ -279,14 +279,14 @@ video_start_datetime_obj = video_start_datetime_obj + timedelta(seconds=time_off
 video_start_datetime = video_start_datetime_obj.strftime('%Y:%m:%d %H:%M:%S')
 video_start_subsectime = video_start_datetime_obj.strftime('%f')
 
-# Displaying metadata
+# Metadata recap
 print('\n{}'.format(locale_toml['ui']['info']['metadatas'].format(video_file_name,
                                                                   round(video_file_size[0], 3), video_file_size[1],
                                                                   video_duration, video_start_datetime,
                                                                   int(int(video_start_subsectime) / 1000),
                                                                   video_rec_timezone)))
 
-# Creating output folder
+# Output folder creation
 output_folder = '{}/{}'.format(output_folder, video_file_name)
 existing_path(output_folder)
 
@@ -295,22 +295,23 @@ existing_path(output_folder)
 i = 0
 
 if timelapse == user_agree:
-    frame_interval = (1000 * frame_sampling) / video_fps
+    frame_interval = frame_sampling / video_fps
 else:
-    frame_interval = 1000 * frame_sampling
+    frame_interval = frame_sampling
 
 cv2_tqdm_unit = " {}".format(locale_toml['ui']['units']['cv2_tqdm'])
+cv2_tqdm_range = int(video_duration / frame_interval)
 
-for i in tqdm(range(video_total_frames - 1), unit=cv2_tqdm_unit):
-    t = frame_interval * i
+for i in tqdm(range(cv2_tqdm_range), unit=cv2_tqdm_unit):
+    t = frame_interval * i * 1000
     video.set(cv2.CAP_PROP_POS_MSEC, t)
     ret, frame = video.read()
 
     frame_name = '{:05d}'.format(i)
     image_name = "{}_f{}.jpg".format(video_file_name.split('.')[0], frame_name)
+    image_path = "{}/{}".format(output_folder, image_name)
 
-    cv2.imwrite(image_name, frame, [cv2.IMWRITE_JPEG_QUALITY, 88, cv2.IMWRITE_JPEG_PROGRESSIVE, 1,
-                                    cv2.IMWRITE_JPEG_SAMPLING_FACTOR, 0x411111])
+    cv2.imwrite(image_path, frame, [cv2.IMWRITE_JPEG_QUALITY, 88, cv2.IMWRITE_JPEG_PROGRESSIVE, 1, cv2.IMWRITE_JPEG_SAMPLING_FACTOR, 0x411111])
 
     ## Time tags preparation
     time_shift = i * frame_sampling
@@ -318,17 +319,19 @@ for i in tqdm(range(video_total_frames - 1), unit=cv2_tqdm_unit):
     current_datetime = current_datetime_obj.strftime('%Y:%m:%d %H:%M:%S')
     current_subsec_time = int(int(current_datetime_obj.strftime('%f')) / 1000)
 
-    with open(image_name, 'rb') as image_file:
+    with open(image_path, 'rb') as image_file:
         image = Image(image_file)
         image.make = make
         image.model = model
         image.author = author
         image.copyright = "{}, {}".format(author, video_start_datetime_obj.strftime('%Y'))
         image.datetime_original = current_datetime
-        image.subsec_time_original = current_subsec_time
-        image.offset_time_original = video_rec_timezone
+        #image.offset_time_original = video_rec_timezone
 
-    with open('{}'.format(image_name), 'wb') as tagged_image_file:
+        if current_subsec_time > 0 :
+            image.subsec_time_original = str(current_subsec_time)
+
+    with open(image_path, 'wb') as tagged_image_file:
         tagged_image_file.write(image.get_file())
 
     i += 1
@@ -336,7 +339,7 @@ for i in tqdm(range(video_total_frames - 1), unit=cv2_tqdm_unit):
 # Geo-tagging (ExifTool)
 print('\n{}'.format(locale_toml['processing']['geotagging']))
 geotagging_cmd = '{} -P -geotag "{}" "-geotime<SubSecDateTimeOriginal" -overwrite_original "{}/{}_f*.jpg"'\
-    .format(exiftool_path, gps_track_path, output_folder, video_file_name)
+    .format(exiftool_path, gps_track_path, output_folder, video_file_name.split('.')[0])
 geotagging = os.system(geotagging_cmd)
 
 # End
