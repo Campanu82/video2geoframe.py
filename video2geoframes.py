@@ -8,7 +8,7 @@ Designed for contribution to street-level imagery projects like Mapillary or Pan
 
 __author__ = "Lucas MATHIEU (@campanu)"
 __license__ = "AGPL-3.0-or-later"
-__version__ = "2.0-alpha5"
+__version__ = "2.0-alpha6"
 __maintainer__ = "Lucas MATHIEU (@campanu)"
 __email__ = "campanu@luc-geo.fr"
 
@@ -60,9 +60,13 @@ ini_file_err = False
 ## Default values
 locale = 'en_us'
 min_frame_samp = 0.5
-max_frame_samp = float(60)
+max_frame_samp = 60.0
 min_timelapse_fps = 1
 max_timelapse_fps = 15
+min_frame_height = 480
+max_frame_height = 9000
+min_time_offset = -10.0
+max_time_offset = 10.0
 
 ## Platform-dependent commands
 if platform.system() == 'Windows':
@@ -154,6 +158,13 @@ else:
             print('{}\n'.format(locale_toml['ui']['paths']['path_err']))
             True
 
+    ### Video metadatas extraction
+    video = cv2.VideoCapture(video_path)
+    video_fps = video.get(cv2.CAP_PROP_FPS)
+    video_width = video.get(cv2.CAP_PROP_FRAME_WIDTH)
+    video_height = video.get(cv2.CAP_PROP_FRAME_HEIGHT)
+    video_total_frames = int(video.get(cv2.CAP_PROP_FRAME_COUNT))
+
     ### GPS track file
     while True:
         try:
@@ -195,7 +206,6 @@ else:
 
     else:
         ### Frame sampling parameter
-
         while True:
             try:
                 frame_sampling = float(input(locale_toml['ui']['parameters']['frame_samp'].format(min_frame_samp,
@@ -211,8 +221,8 @@ else:
                 True
 
     ## Frame height parameter
-    min_frame_height = 480
-    max_frame_height = 6000
+    if video_height <= max_frame_height:
+        max_frame_height = int(round(video_height, 0))
 
     while True:
         try:
@@ -220,6 +230,8 @@ else:
                                                                                             max_frame_height)))
 
             if max_frame_height >= frame_height >= min_frame_height:
+                break
+            elif frame_height == 0:
                 break
             else:
                 print(locale_toml['ui']['parameters']['frame_height_err'].format(min_frame_height, max_frame_height))
@@ -242,9 +254,6 @@ else:
     video_rec_timezone = input(locale_toml['ui']['parameters']['rec_timezone'])
 
     ### Time offset parameter
-    min_time_offset = -10.0
-    max_time_offset = 10.0
-
     while True:
         try:
             time_offset = float(input(locale_toml['ui']['parameters']['time_offset'].format(min_time_offset, max_time_offset)))
@@ -258,19 +267,15 @@ else:
             print(locale_toml['ui']['parameters']['time_offset_err'].format(min_time_offset, max_time_offset))
             True
 
-    ### User-defined metadata
+    ## User-defined metadata
+    print('\n{}'.format(locale_toml['ui']['info']['tags_title']))
+
     make = input(locale_toml['ui']['metadatas']['make'])
     model = input(locale_toml['ui']['metadatas']['model'])
     author = input(locale_toml['ui']['metadatas']['author'])
 
 # Video metadatas formatting
 print('\n{}'.format(locale_toml['processing']['reading_metadatas']))
-
-video = cv2.VideoCapture(video_path)
-video_fps = video.get(cv2.CAP_PROP_FPS)
-video_width = video.get(cv2.CAP_PROP_FRAME_WIDTH)
-video_height = video.get(cv2.CAP_PROP_FRAME_HEIGHT)
-video_total_frames = int(video.get(cv2.CAP_PROP_FRAME_COUNT))
 
 video_file_name = os.path.basename(video_path)
 video_file_size = byte_multiple(os.stat(video_path).st_size)
@@ -310,6 +315,14 @@ for i in tqdm(range(cv2_tqdm_range), unit=cv2_tqdm_unit):
     video.set(cv2.CAP_PROP_POS_MSEC, t)
     ret, frame = video.read()
 
+    ### Image resizing
+    if frame_height != 0:
+        resize_factor = video_height / frame_height
+        image_height = frame_height
+        image_width = int(round(video_height * resize_factor), 0)
+
+        frame = cv2.resize(frame, (image_width, image_height), interpolation=cv2.INTER_LANCZOS4)
+
     frame_name = '{:05d}'.format(i)
     image_name = "{}_f{}.jpg".format(video_file_name.split('.')[0], frame_name)
     image_path = "{}/{}".format(output_folder, image_name)
@@ -332,7 +345,7 @@ for i in tqdm(range(cv2_tqdm_range), unit=cv2_tqdm_unit):
     #     image.datetime_original = current_datetime
     #     #image.offset_time_original = video_rec_timezone
     #
-    #     if current_subsec_time > 0 :
+    #     if current_subsec_time > 0:
     #         image.subsec_time_original = str(current_subsec_time)
     #
     # with open(image_path, 'wb') as tagged_image_file:
@@ -346,7 +359,7 @@ for i in tqdm(range(cv2_tqdm_range), unit=cv2_tqdm_unit):
         piexif.ImageIFD.Model: model,
         piexif.ImageIFD.Artist: author,
         piexif.ImageIFD.Copyright: "{}, {}".format(author, video_start_datetime_obj.strftime('%Y')),
-        piexif.ImageIFD.Software : 'video2geoframes.py (v{})'.format(__version__)
+        piexif.ImageIFD.Software: 'video2geoframes.py (v{})'.format(__version__)
     }
 
     exif_tags = {
