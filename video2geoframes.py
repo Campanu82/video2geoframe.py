@@ -8,7 +8,7 @@ Designed for contribution to street-level imagery projects like Mapillary or Pan
 
 __author__ = "Lucas MATHIEU (@campanu)"
 __license__ = "AGPL-3.0-or-later"
-__version__ = "2.0-alpha3"
+__version__ = "2.0-alpha4"
 __maintainer__ = "Lucas MATHIEU (@campanu)"
 __email__ = "campanu@luc-geo.fr"
 
@@ -346,7 +346,7 @@ for i in tqdm(range(cv2_tqdm_range), unit=cv2_tqdm_unit):
         piexif.ImageIFD.Model: model,
         piexif.ImageIFD.Artist: author,
         piexif.ImageIFD.Copyright: "{}, {}".format(author, video_start_datetime_obj.strftime('%Y')),
-        piexif.ImageIFD.Software : 'video2geoframes.py'
+        piexif.ImageIFD.Software : 'video2geoframes.py (v{})'.format(__version__)
     }
 
     exif_tags = {
