@@ -8,7 +8,7 @@ Designed for contribution to street-level imagery projects like Mapillary or Pan
 
 __author__ = "Lucas MATHIEU (@campanu)"
 __license__ = "AGPL-3.0-or-later"
-__version__ = "2.0-alpha6"
+__version__ = "2.0-alpha7"
 __maintainer__ = "Lucas MATHIEU (@campanu)"
 __email__ = "campanu@luc-geo.fr"
 
@@ -50,7 +50,8 @@ def byte_multiple(size):
 
 
 # Start
-print('# video2geoframes.py')
+release = '2.0-alpha7'
+print('# video2geoframes.py ({})'.format(release))
 
 # Configuration settings
 base_path = unix_path(os.path.dirname(__file__))
@@ -256,7 +257,8 @@ else:
     ### Time offset parameter
     while True:
         try:
-            time_offset = float(input(locale_toml['ui']['parameters']['time_offset'].format(min_time_offset, max_time_offset)))
+            time_offset = float(input(locale_toml['ui']['parameters']['time_offset'].format(min_time_offset,
+                                                                                            max_time_offset)))
 
             if max_time_offset >= frame_sampling >= min_time_offset:
                 break
@@ -283,13 +285,13 @@ video_duration = video_total_frames / video_fps
 
 video_start_datetime_obj = video_start_datetime_obj + timedelta(seconds=time_offset)
 video_start_datetime = video_start_datetime_obj.strftime('%Y-%m-%d %H:%M:%S')
-video_start_subsectime = video_start_datetime_obj.strftime('%f')
+video_start_subsectime = int(video_start_datetime_obj.strftime('%f') / 1000)
 
 # Metadata recap
 print('\n{}'.format(locale_toml['ui']['info']['metadatas'].format(video_file_name,
                                                                   round(video_file_size[0], 3), video_file_size[1],
                                                                   video_duration, video_start_datetime,
-                                                                  int(int(video_start_subsectime) / 1000),
+                                                                  '{:03d}'.format(video_start_subsectime),
                                                                   video_rec_timezone)))
 
 # Output folder creation
@@ -359,7 +361,7 @@ for i in tqdm(range(cv2_tqdm_range), unit=cv2_tqdm_unit):
         piexif.ImageIFD.Model: model,
         piexif.ImageIFD.Artist: author,
         piexif.ImageIFD.Copyright: "{}, {}".format(author, video_start_datetime_obj.strftime('%Y')),
-        piexif.ImageIFD.Software: 'video2geoframes.py (v{})'.format(__version__)
+        piexif.ImageIFD.Software: 'video2geoframes.py (v{})'.format(release)
     }
 
     exif_tags = {
