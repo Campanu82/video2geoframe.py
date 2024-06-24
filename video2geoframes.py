@@ -50,8 +50,7 @@ def byte_multiple(size):
 
 
 # Start
-release = '2.0-alpha7'
-print('# video2geoframes.py ({})'.format(release))
+print('# video2geoframes.py ({})'.format(__version__))
 
 # Configuration settings
 base_path = unix_path(os.path.dirname(__file__))
@@ -361,7 +360,7 @@ for i in tqdm(range(cv2_tqdm_range), unit=cv2_tqdm_unit):
         piexif.ImageIFD.Model: model,
         piexif.ImageIFD.Artist: author,
         piexif.ImageIFD.Copyright: "{}, {}".format(author, video_start_datetime_obj.strftime('%Y')),
-        piexif.ImageIFD.Software: 'video2geoframes.py (v{})'.format(release)
+        piexif.ImageIFD.Software: 'video2geoframes.py (v{})'.format(__version__)
     }
 
     exif_tags = {
