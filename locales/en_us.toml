@@ -12,6 +12,7 @@ This script is designed to create geotagged frames from video and GPX track."""
 end = "End of program, press Enter to quit."
 paths_title = "## Paths"
 parameters_title = "## Process parameters"
+tags_title = "## Additional tags"
 metadata = """{} ({} {}B)\n
 - Duration : {} s\n
 - Start time : {}.{}\n
@@ -21,7 +22,7 @@ metadata = """{} ({} {}B)\n
 cv2_tqdm = 'frame(s)'
 
 [ui.parameters]
-toml_setting²	 = "Setting with TOML file ({}/{}) ? "
+toml_setting = "Setting with TOML file ({}/{}) ? "
 
 timelapse = "Timelapse video ({}/{}) ? "
 timelapse_fps = "Timelapse framerate (frame/s) [{}-{}] : "
@@ -38,7 +39,7 @@ video_start_datetime_err = "Error... entered datetime is not valid."
 
 rec_timezone = "Enter time offset related to UTC (example for CEST : +02:00) : "
 
-time_offset = "Enter time offset between video and GPX in seconds [{}-{}] : "
+time_offset = "Enter time offset with GPS track in seconds [{}-{}] : "
 time_offset_err = "Error... please enter a decimal between {} and {}."
 
 [ui.paths]

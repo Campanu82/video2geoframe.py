@@ -8,7 +8,7 @@ Designed for contribution to street-level imagery projects like Mapillary or Pan
 
 __author__ = "Lucas MATHIEU (@campanu)"
 __license__ = "AGPL-3.0-or-later"
-__version__ = "2.0-alpha4"
+__version__ = "2.0-alpha5"
 __maintainer__ = "Lucas MATHIEU (@campanu)"
 __email__ = "campanu@luc-geo.fr"
 
@@ -263,7 +263,7 @@ else:
     model = input(locale_toml['ui']['metadatas']['model'])
     author = input(locale_toml['ui']['metadatas']['author'])
 
-# Video metadatas extraction
+# Video metadatas formatting
 print('\n{}'.format(locale_toml['processing']['reading_metadatas']))
 
 video = cv2.VideoCapture(video_path)
@@ -277,7 +277,7 @@ video_file_size = byte_multiple(os.stat(video_path).st_size)
 video_duration = video_total_frames / video_fps
 
 video_start_datetime_obj = video_start_datetime_obj + timedelta(seconds=time_offset)
-video_start_datetime = video_start_datetime_obj.strftime('%Y:%m:%d %H:%M:%S')
+video_start_datetime = video_start_datetime_obj.strftime('%Y-%m-%d %H:%M:%S')
 video_start_subsectime = video_start_datetime_obj.strftime('%f')
 
 # Metadata recap
@@ -302,7 +302,7 @@ if timelapse == user_agree:
 else:
     frame_interval = frame_sampling
 
-cv2_tqdm_unit = " {}".format(locale_toml['ui']['units']['cv2_tqdm'])
+cv2_tqdm_unit = locale_toml['ui']['units']['cv2_tqdm']
 cv2_tqdm_range = int(video_duration / frame_interval)
 
 for i in tqdm(range(cv2_tqdm_range), unit=cv2_tqdm_unit):
@@ -316,7 +316,7 @@ for i in tqdm(range(cv2_tqdm_range), unit=cv2_tqdm_unit):
 
     cv2.imwrite(image_path, frame, [cv2.IMWRITE_JPEG_QUALITY, 88, cv2.IMWRITE_JPEG_PROGRESSIVE, 1, cv2.IMWRITE_JPEG_SAMPLING_FACTOR, 0x411111])
 
-    ## Time tags preparation
+    ## Time tags formatting
     time_shift = i * frame_sampling
     current_datetime_obj = video_start_datetime_obj + timedelta(seconds=time_shift)
     current_datetime = current_datetime_obj.strftime('%Y:%m:%d %H:%M:%S')
