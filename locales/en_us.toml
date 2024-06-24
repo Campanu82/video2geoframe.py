@@ -1,7 +1,7 @@
 # Localization file for video2geoframes.py script
 # English (US / World)
 #
-# Last edition : 2024-06-22
+# Last edition : 2024-06-23
 
 [ui]
 
@@ -28,10 +28,10 @@ timelapse = "Timelapse video ({}/{}) ? "
 timelapse_fps = "Timelapse framerate (frame/s) [{}-{}] : "
 timelapse_fps_err = "Error... please enter a decimal between {} et {}."
 
-frame_samp = "Enter the frame sampling in seconds [{}-{}] : "
+frame_samp = "Enter frame sampling in seconds [{}-{}] : "
 frame_samp_err = "Error... please enter a decimal between {} and {}."
 
-frame_height = "Enter frame height in pixels (ratio unchanged) [{}-{}] : "
+frame_height = "Enter output frame height in pixels (ratio unchanged) [{}-{}] : "
 frame_height_err = "Error... please enter an integer between {} and {}."
 
 video_start_datetime = "Enter video start datetime following ISO format (exemple : 2023-09-18T22:00:02.000) : "
