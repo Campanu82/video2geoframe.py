@@ -8,7 +8,7 @@ Designed for contribution to street-level imagery projects like Mapillary or Pan
 
 __author__ = "Lucas MATHIEU (@campanu)"
 __license__ = "AGPL-3.0-or-later"
-__version__ = "2.0-alpha2"
+__version__ = "2.0-alpha3"
 __maintainer__ = "Lucas MATHIEU (@campanu)"
 __email__ = "campanu@luc-geo.fr"
 
@@ -18,6 +18,7 @@ import platform
 from datetime import datetime, timedelta
 
 import cv2
+import piexif
 from tomlkit import dumps, loads
 from tqdm import tqdm
 from exif import Image, GpsAltitudeRef
@@ -291,7 +292,9 @@ output_folder = '{}/{}'.format(output_folder, video_file_name)
 existing_path(output_folder)
 
 # Processes
-## Frame sampling + tagging (OpenCV + exif)
+## Frame sampling + tagging (OpenCV + piexif)
+print('\n{}'.format(locale_toml['processing']['sampling']))
+
 i = 0
 
 if timelapse == user_agree:
@@ -319,25 +322,52 @@ for i in tqdm(range(cv2_tqdm_range), unit=cv2_tqdm_unit):
     current_datetime = current_datetime_obj.strftime('%Y:%m:%d %H:%M:%S')
     current_subsec_time = int(int(current_datetime_obj.strftime('%f')) / 1000)
 
-    with open(image_path, 'rb') as image_file:
-        image = Image(image_file)
-        image.make = make
-        image.model = model
-        image.author = author
-        image.copyright = "{}, {}".format(author, video_start_datetime_obj.strftime('%Y'))
-        image.datetime_original = current_datetime
-        #image.offset_time_original = video_rec_timezone
+    # exif code
+    # with open(image_path, 'rb') as image_file:
+    #     image = Image(image_file)
+    #     image.make = make
+    #     image.model = model
+    #     image.author = author
+    #     image.copyright = "{}, {}".format(author, video_start_datetime_obj.strftime('%Y'))
+    #     image.datetime_original = current_datetime
+    #     #image.offset_time_original = video_rec_timezone
+    #
+    #     if current_subsec_time > 0 :
+    #         image.subsec_time_original = str(current_subsec_time)
+    #
+    # with open(image_path, 'wb') as tagged_image_file:
+    #     tagged_image_file.write(image.get_file())
 
-        if current_subsec_time > 0 :
-            image.subsec_time_original = str(current_subsec_time)
+    # piexif code
+    image_exif = piexif.load(image_path)
 
-    with open(image_path, 'wb') as tagged_image_file:
-        tagged_image_file.write(image.get_file())
+    image_tags = {
+        piexif.ImageIFD.Make: make,
+        piexif.ImageIFD.Model: model,
+        piexif.ImageIFD.Artist: author,
+        piexif.ImageIFD.Copyright: "{}, {}".format(author, video_start_datetime_obj.strftime('%Y')),
+        piexif.ImageIFD.Software : 'video2geoframes.py'
+    }
+
+    exif_tags = {
+        piexif.ExifIFD.DateTimeOriginal: current_datetime,
+        piexif.ExifIFD.OffsetTimeOriginal: video_rec_timezone
+    }
+
+    if current_subsec_time > 0:
+        exif_tags[piexif.ExifIFD.SubSecTime] = str(current_subsec_time)
+
+    image_exif['0th'] = image_tags
+    image_exif['Exif'] = exif_tags
+
+    image_exif_bytes = piexif.dump(image_exif)
+    piexif.insert(image_exif_bytes, image_path)
 
     i += 1
 
 # Geo-tagging (ExifTool)
 print('\n{}'.format(locale_toml['processing']['geotagging']))
+
 geotagging_cmd = '{} -P -geotag "{}" "-geotime<SubSecDateTimeOriginal" -overwrite_original "{}/{}_f*.jpg"'\
     .format(exiftool_path, gps_track_path, output_folder, video_file_name.split('.')[0])
 geotagging = os.system(geotagging_cmd)
