@@ -1,0 +1,19 @@
+# Default configuration file for video2geoframes.py
+# See documentation for more information
+#
+# Last edition : 2024-06-23
+
+# Mandatory section
+[system]
+# See documentation for supported locales
+locale = "en_us"
+exiftool_path = "./dependencies/exiftool.exe"
+
+[default]
+
+# Optional section to avoid manual input
+# Tags can be overwrited if presents in TOML setting file
+[default.tags]
+author = "Campanu"
+make = "Camera maker"
+camera = "Camera model"

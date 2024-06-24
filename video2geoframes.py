@@ -8,7 +8,7 @@ Designed for contribution to street-level imagery projects like Mapillary or Pan
 
 __author__ = "Lucas MATHIEU (@campanu)"
 __license__ = "AGPL-3.0-or-later"
-__version__ = "2.0-alpha7"
+__version__ = "2.0-alpha8"
 __maintainer__ = "Lucas MATHIEU (@campanu)"
 __email__ = "campanu@luc-geo.fr"
 
@@ -19,9 +19,9 @@ from datetime import datetime, timedelta
 
 import cv2
 import piexif
-from tomlkit import dumps, loads
+from tomlkit import loads
 from tqdm import tqdm
-from exif import Image, GpsAltitudeRef
+
 
 # Functions
 def unix_path(path):
@@ -45,19 +45,56 @@ def byte_multiple(size):
         size = size / 1024
 
     multiple = multiples[i]
-
     return size, multiple
 
 
+def existing_items(expected_items: list, items: list):
+    presents_items = []
+    duplicated_items = []
+    missing_items = []
+
+    for eit in expected_items:
+        i = 0
+        for it in items:
+            if it == eit:
+                i += 1
+
+        if i == 0:
+            missing_items.append(eit)
+        elif i == 1:
+            presents_items.append(eit)
+        else:
+            duplicated_items.append(eit)
+
+    return {'presents': presents_items, 'duplicated': duplicated_items, 'missing': missing_items}
+
+
+def list_enumerator(item_list: list, intermediate_separator: str, last_separator: str):
+    i = 1
+
+    for it in item_list:
+        if i == 1:
+            enumerated_list = it
+        elif 1 < i < len(item_list):
+            enumerated_list = '{}{}{}'.format(enumerated_list, intermediate_separator, it)
+        else:
+            enumerated_list = '{}{}{}'.format(enumerated_list, last_separator, it)
+
+        i += 1
+
+    return enumerated_list
+
+
 # Start
-print('# video2geoframes.py ({})'.format(__version__))
+print("# video2geoframes.py (v{})\n".format(__version__))
 
 # Configuration settings
 base_path = unix_path(os.path.dirname(__file__))
-ini_file_path = '{}/video2geoframes.ini'.format(base_path)
-ini_file_err = False
+conf_file_path = '{}/video2geoframes_conf.toml'.format(base_path)
+conf_file_err = False
 
-## Default values
+# Default values
+mandatory_parameters = ['locale', 'exiftool_path']
 locale = 'en_us'
 min_frame_samp = 0.5
 max_frame_samp = 60.0
@@ -68,323 +105,323 @@ max_frame_height = 9000
 min_time_offset = -10.0
 max_time_offset = 10.0
 
-## Platform-dependent commands
+# Platform-dependent default paths
 if platform.system() == 'Windows':
-    ffmpeg_path = '{}/dependencies/ffmpeg-essentials/bin/ffmpeg.exe'.format(base_path)
     exiftool_path = '{}/dependencies/exiftool.exe'.format(base_path)
 else:
-    ffmpeg_path = 'ffmpeg'
     exiftool_path = 'exiftool'
 
-## ini file reading
-if os.path.exists(ini_file_path):
-    configuration = {}
-
+try:
+    # Configuration file reading
     try:
-        with open(ini_file_path, 'r') as file:
-            for line in file:
-                if line[0] == '#':
-                    continue
-                else:
-                    (key, value) = line.split()
-                    configuration[key] = value.replace('"', '')
+        if os.path.exists(conf_file_path):
+            with codecs.open(conf_file_path, mode='r', encoding='utf-8') as f:
+                conf_toml = loads(f.read())
+                f.close()
+        else:
+            raise FileNotFoundError
 
-        locale = configuration.get('ui_language')
-        max_frame_samp = float(configuration.get('max_frame_sample'))
-        ffmpeg_path = configuration.get('ffmpeg_path').replace('./', '{}/'.format(base_path))
-        exiftool_path = configuration.get('exiftool_path').replace('./', '{}/'.format(base_path))
-    except:
-        print('\nError... not readable or incomplete ini file. Default configuration will be used.')
+        # Configuration check
+        reading_parameters = conf_toml['system'].keys()
+        check_result = existing_items(mandatory_parameters, reading_parameters)
 
-# Localization
-locale_file_path = '{}/locales/{}.toml'.format(base_path, locale)
+        if len(check_result['missing']) != 0:
+            missing_parameters_list = list_enumerator(check_result['missing'], ', ', ' and ')
 
-if os.path.exists(locale_file_path):
+            if len(missing_parameters_list) > 1:
+                verb = 'is'
+            else:
+                verb = 'are'
+
+            print("(!) {} {} missing in configuration file.".format(missing_parameters_list, verb))
+            raise ValueError
+
+        # Configuration assignment
+        locale = conf_toml['system']['locale']
+        exiftool_path = unix_path(conf_toml['system']['exiftool_path'])
+    except (FileNotFoundError, ValueError):
+        print("\nError... configuration file doesn't exists or invalid.")
+        default_conf = str(input("Use default configuration instead (Y/N) ? ").upper())
+
+        if default_conf != 'Y':
+            raise InterruptedError
+
+    # Localization
+    locale_file_path = '{}/locales/{}.toml'.format(base_path, locale)
+
+    if os.path.exists(locale_file_path):
         with codecs.open(locale_file_path, mode='r', encoding='utf-8') as f:
             locale_toml = loads(f.read())
             f.close()
-else:
-    print("Error.... file for locale \"{}\" doesn't exists or invalid.".format(locale))
-    ValueError
-
-user_agree = locale_toml['user']['agree'][0].upper()
-user_disagree = locale_toml['user']['disagree'][0].upper()
-path_error = locale_toml['ui']['paths']['path_err']
-
-# Introduction text
-print(locale_toml['ui']['info']['intro'])
-
-# User input
-## TOML setting file
-toml_setting = input('\n{}'.format(locale_toml['ui']['parameters']['toml_setting'].format(user_agree, user_disagree)))
-i = 0
-
-if toml_setting.upper() == 'O':
-    while True:
-        try:
-            i += 1
-            toml_file_path = unix_path(input('{}'.format(locale_toml['ui']['paths']['toml_file']))).strip()
-
-            if os.path.exists(toml_file_path):
-                break
-            else:
-                print('{}\n'.format(locale_toml['ui']['paths']['path_err']))
-                True
-        except:
-            print('{}\n'.format(locale_toml['ui']['paths']['path_err']))
-
-    with codecs.open(toml_file_path, mode='r', encoding='utf-8') as f:
-        setting_toml = loads(f.read())
-        f.close()
-
-    # <--coding in progress-->
-    video_path = ''
-    gps_track_path = ''
-
-## Paths
-else:
-    print('\n{}'.format(locale_toml['ui']['info']['paths_title']))
-
-    ### Video file
-    while True:
-        try:
-            video_path = unix_path(input('{}'.format(locale_toml['ui']['paths']['video_file']))).strip()
-            if os.path.exists(video_path):
-                break
-            else:
-                print('{}\n'.format(locale_toml['ui']['paths']['path_err']))
-                True
-        except:
-            print('{}\n'.format(locale_toml['ui']['paths']['path_err']))
-            True
-
-    ### Video metadatas extraction
-    video = cv2.VideoCapture(video_path)
-    video_fps = video.get(cv2.CAP_PROP_FPS)
-    video_width = video.get(cv2.CAP_PROP_FRAME_WIDTH)
-    video_height = video.get(cv2.CAP_PROP_FRAME_HEIGHT)
-    video_total_frames = int(video.get(cv2.CAP_PROP_FRAME_COUNT))
-
-    ### GPS track file
-    while True:
-        try:
-            gps_track_path = unix_path(input('{}'.format(locale_toml['ui']['paths']['gps_track']))).strip()
-            if os.path.exists(gps_track_path):
-                break
-            else:
-                print('{}\n'.format(locale_toml['ui']['paths']['path_err']))
-                True
-        except:
-            print('{}\n'.format(locale_toml['ui']['paths']['path_err']))
-            True
-
-    ### Output folder
-    output_folder = unix_path(input(locale_toml['ui']['paths']['output_folder']))
-
-    ## Parameters
-    print('\n{}'.format(locale_toml['ui']['info']['parameters_title']))
-
-    ### Timelapse video
-    timelapse = input(locale_toml['ui']['parameters']['timelapse'].format(user_agree, user_disagree))
-
-    if timelapse.upper() == user_agree:
-        ### Timelapse framerate parameter
-        while True:
-            try:
-                timelapse_fps = int(input(locale_toml['ui']['parameters']['timelapse_fps'].format(min_timelapse_fps,
-                                                                                                  max_timelapse_fps)))
-                if max_timelapse_fps >= timelapse_fps >= min_timelapse_fps:
-                    frame_sampling = 1 / timelapse_fps
-                    break
-                else:
-                    print(locale_toml['ui']['parameters']['timelapse_fps_err'].format(min_timelapse_fps,
-                                                                                      max_timelapse_fps))
-                    True
-            except ValueError:
-                print(locale_toml['ui']['parameters']['timelapse_fps_err'].format(min_timelapse_fps, max_timelapse_fps))
-                True
-
     else:
-        ### Frame sampling parameter
+        print("\nError.... file for locale \"{}\" doesn't exists or invalid.".format(locale))
+        raise InterruptedError
+
+    user_agree = locale_toml['user']['agree'][0].upper()
+    user_disagree = locale_toml['user']['disagree'][0].upper()
+    path_error = locale_toml['ui']['paths']['path_err']
+
+    # Introduction text
+    print(locale_toml['ui']['info']['intro'])
+
+    # User input
+    # TOML setting file
+    toml_setting = input('\n{}'.format(locale_toml['ui']['parameters']['toml_setting'].format(user_agree, user_disagree)))
+    i = 0
+
+    if toml_setting.upper() == 'O':
         while True:
             try:
-                frame_sampling = float(input(locale_toml['ui']['parameters']['frame_samp'].format(min_frame_samp,
-                                                                                                  max_frame_samp)))
+                i += 1
+                toml_file_path = unix_path(input('{}'.format(locale_toml['ui']['paths']['toml_file']))).strip()
 
-                if max_frame_samp >= frame_sampling >= min_frame_samp:
+                if os.path.exists(toml_file_path):
+                    with codecs.open(toml_file_path, mode='r', encoding='utf-8') as f:
+                        setting_toml = loads(f.read())
+                        f.close()
                     break
                 else:
-                    print(locale_toml['ui']['parameters']['frame_samp_err'].format(min_frame_samp, max_frame_samp))
+                    raise FileNotFoundError
+            except (FileNotFoundError, ValueError):
+                print('{}\n'.format(locale_toml['ui']['paths']['path_err']))
+                True
+
+        # <--coding in progress-->
+        raise NotImplementedError
+
+    # Paths
+    else:
+        print('\n{}'.format(locale_toml['ui']['info']['paths_title']))
+
+        # Video file
+        while True:
+            try:
+                video_path = unix_path(input('{}'.format(locale_toml['ui']['paths']['video_file']))).strip()
+                if os.path.exists(video_path):
+                    break
+                else:
+                    print('{}\n'.format(locale_toml['ui']['paths']['path_err']))
+                    True
+            except:
+                print('{}\n'.format(locale_toml['ui']['paths']['path_err']))
+                True
+
+        # Video metadatas extraction
+        video = cv2.VideoCapture(video_path)
+        video_fps = video.get(cv2.CAP_PROP_FPS)
+        video_width = video.get(cv2.CAP_PROP_FRAME_WIDTH)
+        video_height = video.get(cv2.CAP_PROP_FRAME_HEIGHT)
+        video_total_frames = int(video.get(cv2.CAP_PROP_FRAME_COUNT))
+
+        # GPS track file
+        while True:
+            try:
+                gps_track_path = unix_path(input('{}'.format(locale_toml['ui']['paths']['gps_track']))).strip()
+                if os.path.exists(gps_track_path):
+                    break
+                else:
+                    print('{}\n'.format(locale_toml['ui']['paths']['path_err']))
+                    True
+            except:
+                print('{}\n'.format(locale_toml['ui']['paths']['path_err']))
+                True
+
+        # Output folder
+        output_folder = unix_path(input(locale_toml['ui']['paths']['output_folder']))
+
+        # Parameters
+        print('\n{}'.format(locale_toml['ui']['info']['parameters_title']))
+
+        # Timelapse video
+        timelapse = input(locale_toml['ui']['parameters']['timelapse'].format(user_agree, user_disagree)).upper()
+
+        if timelapse == user_agree:
+            # Timelapse framerate parameter
+            while True:
+                try:
+                    timelapse_fps = int(input(locale_toml['ui']['parameters']['timelapse_fps'].format(min_timelapse_fps,
+                                                                                                      max_timelapse_fps)))
+                    if max_timelapse_fps >= timelapse_fps >= min_timelapse_fps:
+                        frame_sampling = float(1 / timelapse_fps)
+                        break
+                    else:
+                        print('\n{}'.format(locale_toml['ui']['parameters']['timelapse_fps_err'].format(min_timelapse_fps,
+                                                                                          max_timelapse_fps)))
+                        True
+                except ValueError:
+                    print('\n{}'.format(locale_toml['ui']['parameters']['timelapse_fps_err'].format(min_timelapse_fps, max_timelapse_fps)))
+                    True
+
+        else:
+            # Frame sampling parameter
+            while True:
+                try:
+                    frame_sampling = float(input(locale_toml['ui']['parameters']['frame_samp'].format(min_frame_samp,
+                                                                                                      max_frame_samp)))
+
+                    if max_frame_samp >= frame_sampling >= min_frame_samp:
+                        break
+                    else:
+                        print('\n{}'.format(locale_toml['ui']['parameters']['frame_samp_err'].format(min_frame_samp, max_frame_samp)))
+                        True
+                except ValueError:
+                    print('\n{}'.format(locale_toml['ui']['parameters']['frame_samp_err'].format(min_frame_samp, max_frame_samp)))
+                    True
+
+        # Frame height parameter
+        if video_height <= max_frame_height:
+            max_frame_height = int(round(video_height, 0))
+
+        while True:
+            try:
+                frame_height = int(input(locale_toml['ui']['parameters']['frame_height'].format(min_frame_height,
+                                                                                                max_frame_height)))
+
+                if max_frame_height >= frame_height >= min_frame_height:
+                    break
+                elif frame_height == 0:
+                    break
+                else:
+                    print('\n{}'.format(locale_toml['ui']['parameters']['frame_height_err'].format(min_frame_height, max_frame_height)))
                     True
             except ValueError:
-                print(locale_toml['ui']['parameters']['frame_samp_err'].format(min_frame_samp, max_frame_samp))
+                print('\n{}'.format(locale_toml['ui']['parameters']['frame_height_err'].format(min_frame_height, max_frame_height)))
                 True
 
-    ## Frame height parameter
-    if video_height <= max_frame_height:
-        max_frame_height = int(round(video_height, 0))
-
-    while True:
-        try:
-            frame_height = int(input(locale_toml['ui']['parameters']['frame_height'].format(min_frame_height,
-                                                                                            max_frame_height)))
-
-            if max_frame_height >= frame_height >= min_frame_height:
+        # Video start datetime parameter
+        while True:
+            try:
+                video_start_datetime = input(locale_toml['ui']['parameters']['video_start_datetime'])
+                video_start_datetime_obj = datetime.strptime(video_start_datetime, '%Y-%m-%dT%H:%M:%S.%f')
                 break
-            elif frame_height == 0:
-                break
-            else:
-                print(locale_toml['ui']['parameters']['frame_height_err'].format(min_frame_height, max_frame_height))
+            except ValueError:
+                print('\n{}'.format(locale_toml['ui']['parameters']['video_start_datetime_err']))
                 True
-        except ValueError:
-            print(locale_toml['ui']['parameters']['frame_height_err'].format(min_frame_height, max_frame_height))
-            True
 
-    ### Video start datetime parameter
-    while True:
-        try:
-            video_start_datetime = input(locale_toml['ui']['parameters']['video_start_datetime'])
-            video_start_datetime_obj = datetime.strptime(video_start_datetime, '%Y-%m-%dT%H:%M:%S.%f')
-            break
-        except ValueError:
-            print(locale_toml['ui']['parameters']['video_start_datetime_err'])
-            True
+        # Video recording timezone
+        video_rec_timezone = input(locale_toml['ui']['parameters']['rec_timezone'])
 
-    ### Video recording timezone
-    video_rec_timezone = input(locale_toml['ui']['parameters']['rec_timezone'])
+        # Time offset parameter
+        while True:
+            try:
+                time_offset = float(input(locale_toml['ui']['parameters']['time_offset'].format(min_time_offset,
+                                                                                                max_time_offset)))
 
-    ### Time offset parameter
-    while True:
-        try:
-            time_offset = float(input(locale_toml['ui']['parameters']['time_offset'].format(min_time_offset,
-                                                                                            max_time_offset)))
-
-            if max_time_offset >= frame_sampling >= min_time_offset:
-                break
-            else:
-                print(locale_toml['ui']['parameters']['time_offset_err'].format(min_time_offset, max_time_offset))
+                if max_time_offset >= frame_sampling >= min_time_offset:
+                    break
+                else:
+                    print('\n{}'.format(locale_toml['ui']['parameters']['time_offset_err'].format(min_time_offset, max_time_offset)))
+                    True
+            except ValueError:
+                print('\n{}'.format(locale_toml['ui']['parameters']['time_offset_err'].format(min_time_offset, max_time_offset)))
                 True
-        except ValueError:
-            print(locale_toml['ui']['parameters']['time_offset_err'].format(min_time_offset, max_time_offset))
-            True
 
-    ## User-defined metadata
-    print('\n{}'.format(locale_toml['ui']['info']['tags_title']))
+        # User-defined metadata
+        print('\n{}'.format(locale_toml['ui']['info']['tags_title']))
 
-    make = input(locale_toml['ui']['metadatas']['make'])
-    model = input(locale_toml['ui']['metadatas']['model'])
-    author = input(locale_toml['ui']['metadatas']['author'])
+        make = input(locale_toml['ui']['metadatas']['make'])
+        model = input(locale_toml['ui']['metadatas']['model'])
+        author = input(locale_toml['ui']['metadatas']['author'])
 
-# Video metadatas formatting
-print('\n{}'.format(locale_toml['processing']['reading_metadatas']))
+    # Video metadatas formatting
+    print('\n{}'.format(locale_toml['processing']['reading_metadatas']))
 
-video_file_name = os.path.basename(video_path)
-video_file_size = byte_multiple(os.stat(video_path).st_size)
-video_duration = video_total_frames / video_fps
+    video_file_name = os.path.basename(video_path)
+    video_file_size = byte_multiple(os.stat(video_path).st_size)
+    video_duration = video_total_frames / video_fps
 
-video_start_datetime_obj = video_start_datetime_obj + timedelta(seconds=time_offset)
-video_start_datetime = video_start_datetime_obj.strftime('%Y-%m-%d %H:%M:%S')
-video_start_subsectime = int(video_start_datetime_obj.strftime('%f') / 1000)
+    video_start_datetime_obj = video_start_datetime_obj + timedelta(seconds=time_offset)
+    video_start_datetime = video_start_datetime_obj.strftime('%Y-%m-%d %H:%M:%S')
+    video_start_subsectime = int(int(video_start_datetime_obj.strftime('%f')) / 1000)
 
-# Metadata recap
-print('\n{}'.format(locale_toml['ui']['info']['metadatas'].format(video_file_name,
-                                                                  round(video_file_size[0], 3), video_file_size[1],
-                                                                  video_duration, video_start_datetime,
-                                                                  '{:03d}'.format(video_start_subsectime),
-                                                                  video_rec_timezone)))
+    # Metadatas recap
+    print('\n{}'.format(locale_toml['ui']['info']['metadatas'].format(video_file_name,
+                                                                      round(video_file_size[0], 3), video_file_size[1],
+                                                                      video_duration, video_start_datetime,
+                                                                      '{:03d}'.format(video_start_subsectime),
+                                                                      video_rec_timezone)))
 
-# Output folder creation
-output_folder = '{}/{}'.format(output_folder, video_file_name)
-existing_path(output_folder)
+    # Output folder creation
+    output_folder = '{}/{}'.format(output_folder, video_file_name)
+    existing_path(output_folder)
 
-# Processes
-## Frame sampling + tagging (OpenCV + piexif)
-print('\n{}'.format(locale_toml['processing']['sampling']))
+    # Processes
+    # Frame sampling + tagging (OpenCV + piexif)
+    print('\n{}'.format(locale_toml['processing']['sampling']))
 
-i = 0
+    i = 0
 
-if timelapse == user_agree:
-    frame_interval = frame_sampling / video_fps
-else:
-    frame_interval = frame_sampling
+    if timelapse == user_agree:
+        frame_interval = frame_sampling / video_fps
+    else:
+        frame_interval = frame_sampling
 
-cv2_tqdm_unit = locale_toml['ui']['units']['cv2_tqdm']
-cv2_tqdm_range = int(video_duration / frame_interval)
+    cv2_tqdm_unit = locale_toml['ui']['units']['cv2_tqdm']
+    cv2_tqdm_range = int(video_duration / frame_interval)
 
-for i in tqdm(range(cv2_tqdm_range), unit=cv2_tqdm_unit):
-    t = frame_interval * i * 1000
-    video.set(cv2.CAP_PROP_POS_MSEC, t)
-    ret, frame = video.read()
+    for i in tqdm(range(cv2_tqdm_range), unit=cv2_tqdm_unit):
+        t = frame_interval * i * 1000
+        video.set(cv2.CAP_PROP_POS_MSEC, t)
+        ret, frame = video.read()
 
-    ### Image resizing
-    if frame_height != 0:
-        resize_factor = video_height / frame_height
-        image_height = frame_height
-        image_width = int(round(video_height * resize_factor), 0)
+        # Image resizing
+        if frame_height != 0:
+            resize_factor = video_height / frame_height
+            image_height = frame_height
+            image_width = int(round(video_height * resize_factor, 0))
 
-        frame = cv2.resize(frame, (image_width, image_height), interpolation=cv2.INTER_LANCZOS4)
+            frame = cv2.resize(frame, (image_width, image_height), interpolation=cv2.INTER_LANCZOS4)
 
-    frame_name = '{:05d}'.format(i)
-    image_name = "{}_f{}.jpg".format(video_file_name.split('.')[0], frame_name)
-    image_path = "{}/{}".format(output_folder, image_name)
+        frame_name = '{:05d}'.format(i)
+        image_name = "{}_f{}.jpg".format(video_file_name.split('.')[0], frame_name)
+        image_path = "{}/{}".format(output_folder, image_name)
 
-    cv2.imwrite(image_path, frame, [cv2.IMWRITE_JPEG_QUALITY, 88, cv2.IMWRITE_JPEG_PROGRESSIVE, 1, cv2.IMWRITE_JPEG_SAMPLING_FACTOR, 0x411111])
+        cv2.imwrite(image_path, frame, [cv2.IMWRITE_JPEG_QUALITY, 88, cv2.IMWRITE_JPEG_PROGRESSIVE, 1, cv2.IMWRITE_JPEG_SAMPLING_FACTOR, 0x411111])
 
-    ## Time tags formatting
-    time_shift = i * frame_sampling
-    current_datetime_obj = video_start_datetime_obj + timedelta(seconds=time_shift)
-    current_datetime = current_datetime_obj.strftime('%Y:%m:%d %H:%M:%S')
-    current_subsec_time = int(int(current_datetime_obj.strftime('%f')) / 1000)
+        # Time tags formatting
+        time_shift = i * frame_sampling
+        current_datetime_obj = video_start_datetime_obj + timedelta(seconds=time_shift)
+        current_datetime = current_datetime_obj.strftime('%Y:%m:%d %H:%M:%S')
+        current_subsec_time = int(int(current_datetime_obj.strftime('%f')) / 1000)
 
-    # exif code
-    # with open(image_path, 'rb') as image_file:
-    #     image = Image(image_file)
-    #     image.make = make
-    #     image.model = model
-    #     image.author = author
-    #     image.copyright = "{}, {}".format(author, video_start_datetime_obj.strftime('%Y'))
-    #     image.datetime_original = current_datetime
-    #     #image.offset_time_original = video_rec_timezone
-    #
-    #     if current_subsec_time > 0:
-    #         image.subsec_time_original = str(current_subsec_time)
-    #
-    # with open(image_path, 'wb') as tagged_image_file:
-    #     tagged_image_file.write(image.get_file())
+        # piexif code
+        image_exif = piexif.load(image_path)
 
-    # piexif code
-    image_exif = piexif.load(image_path)
+        image_tags = {
+            piexif.ImageIFD.Make: make,
+            piexif.ImageIFD.Model: model,
+            piexif.ImageIFD.Artist: author,
+            piexif.ImageIFD.Copyright: "{}, {}".format(author, video_start_datetime_obj.strftime('%Y')),
+            piexif.ImageIFD.Software: 'video2geoframes.py (v{})'.format(__version__)
+        }
 
-    image_tags = {
-        piexif.ImageIFD.Make: make,
-        piexif.ImageIFD.Model: model,
-        piexif.ImageIFD.Artist: author,
-        piexif.ImageIFD.Copyright: "{}, {}".format(author, video_start_datetime_obj.strftime('%Y')),
-        piexif.ImageIFD.Software: 'video2geoframes.py (v{})'.format(__version__)
-    }
+        exif_tags = {
+            piexif.ExifIFD.DateTimeOriginal: current_datetime,
+            piexif.ExifIFD.OffsetTimeOriginal: video_rec_timezone
+        }
 
-    exif_tags = {
-        piexif.ExifIFD.DateTimeOriginal: current_datetime,
-        piexif.ExifIFD.OffsetTimeOriginal: video_rec_timezone
-    }
+        if current_subsec_time > 0:
+            exif_tags[piexif.ExifIFD.SubSecTime] = str(current_subsec_time)
 
-    if current_subsec_time > 0:
-        exif_tags[piexif.ExifIFD.SubSecTime] = str(current_subsec_time)
+        image_exif['0th'] = image_tags
+        image_exif['Exif'] = exif_tags
 
-    image_exif['0th'] = image_tags
-    image_exif['Exif'] = exif_tags
+        image_exif_bytes = piexif.dump(image_exif)
+        piexif.insert(image_exif_bytes, image_path)
 
-    image_exif_bytes = piexif.dump(image_exif)
-    piexif.insert(image_exif_bytes, image_path)
+        i += 1
 
-    i += 1
+    # Geo-tagging (ExifTool)
+    print('\n{}'.format(locale_toml['processing']['geotagging']))
 
-# Geo-tagging (ExifTool)
-print('\n{}'.format(locale_toml['processing']['geotagging']))
+    geotagging_cmd = '{} -P -geotag "{}" "-geotime<SubSecDateTimeOriginal" -overwrite_original "{}/{}_f*.jpg"'\
+        .format(exiftool_path, gps_track_path, output_folder, video_file_name.split('.')[0])
+    geotagging = os.system(geotagging_cmd)
 
-geotagging_cmd = '{} -P -geotag "{}" "-geotime<SubSecDateTimeOriginal" -overwrite_original "{}/{}_f*.jpg"'\
-    .format(exiftool_path, gps_track_path, output_folder, video_file_name.split('.')[0])
-geotagging = os.system(geotagging_cmd)
+    # End
+    input('\n{}'.format(locale_toml['ui']['info']['end']))
+except NotImplementedError:
+    print("\nSorry, this function is not implemented, work in progress ;)")
+except InterruptedError:
+    input("\nEnd of program, press Enter to quit.")
 
-# End
-input('\n{}'.format(locale_toml['ui']['info']['end']))
