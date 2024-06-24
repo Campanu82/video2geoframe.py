@@ -8,7 +8,7 @@ Designed for contribution to street-level imagery projects like Mapillary or Pan
 
 __author__ = "Lucas MATHIEU (@campanu)"
 __license__ = "AGPL-3.0-or-later"
-__version__ = "2.0-alpha8"
+__version__ = "2.0-alpha9"
 __maintainer__ = "Lucas MATHIEU (@campanu)"
 __email__ = "campanu@luc-geo.fr"
 
@@ -138,7 +138,7 @@ try:
 
         # Configuration assignment
         locale = conf_toml['system']['locale']
-        exiftool_path = unix_path(conf_toml['system']['exiftool_path'])
+        exiftool_path = unix_path(conf_toml['system']['exiftool_path']).replace('./', '{}/'.format(base_path))
     except (FileNotFoundError, ValueError):
         print("\nError... configuration file doesn't exists or invalid.")
         default_conf = str(input("Use default configuration instead (Y/N) ? ").upper())
