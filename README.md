@@ -1,6 +1,6 @@
 # video2geoframes.py
 
-![Gitea Release](https://img.shields.io/gitea/v/release/lumathieu/video2geoframes.py?gitea_url=https%3A%2F%2Fgit.luc-geo.fr&include_prereleases&sort=semver&display_name=tag)
+![Gitea Release](https://img.shields.io/gitea/v/release/lumathieu/video2geoframes.py?gitea_url=https%3A%2F%2Fgit.luc-geo.fr&include_prereleases&sort=semver&display_name=release&style=flat&link=https%3A%2F%2Fgit.luc-geo.fr%2Flumathieu%2Fvideo2geoframes.py%2Freleases)
 
 _🇬🇧 version_ / [_🇫🇷 version here_]()
 
