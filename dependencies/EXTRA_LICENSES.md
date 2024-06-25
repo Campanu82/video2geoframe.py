@@ -1,6 +1,6 @@
 # Extra licenses
 
-Detail of dependencies original licences.
+Detail of dependencies original license.
 
 ## ExifTool (by Phil Harvey)
 
