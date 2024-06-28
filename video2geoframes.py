@@ -7,7 +7,7 @@ Designed for contribution to street-level imagery projects like Mapillary or Pan
 """
 
 __author__ = "Lucas MATHIEU (@campanu)"
-__license__ = "AGPL-3.0-or-later"
+__license__ = "GPL-3.0-or-later"
 __version__ = "1.0-beta"
 __maintainer__ = "Lucas MATHIEU (@campanu)"
 __email__ = "campanu@luc-geo.fr"
