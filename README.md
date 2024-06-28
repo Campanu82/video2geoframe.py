@@ -12,13 +12,14 @@ Designed for ease contribution to street-level imagery projects like Mapillary o
 
 Nothing simpler : collect your video, your GPS track, execute Python script and follow the guide !
 
-In detail, the program is built around a TUI or _Textual User Interface_, permitting to launch video process easily with
-step-by-step parameters input.
+In detail, the program is built around a TUI or _Textual User Interface_, allowing to launch video process easily with
+step-by-step parameter input.
 
-Input is guided by textual help indicating attempted values.
+Input is guided by textual help indicating expected values.
 
 Before script starting, you need to have :
-* a video file with exact timestamp (start) in local time or UTC
+* a video file (max. 1h23 min)
+* known the exact timestamp (start) in local time or UTC
 * a clean GPS tack file covering video duration
 * a working directory.
 
@@ -28,9 +29,21 @@ _Coming soon._
 
 ## Features
 
-_Coming soon._
+Program allows in one process to execute following tasks :
+* video sampling according to a time interval
+* incremental timestamp of frame sequence
+* frames export to JPEG format
+* exported frames geotagging from GPS track.
 
-### Comparison v1 / v2
+It also includes :
+* timelapse video support
+* frame resizing to a less resolution than original video with ratio keeping
+* metadata adding in EXIF tags `artist`, `make`, `model` et `copyright` (see [documentation ExifTool](https://exiftool.org/TagNames/EXIF.html))
+* millisecond accuracy timestamp
+* local time support with UTC offset
+* temporal offset adding for correlate video and GPS.
+
+### Features v1 / v2
 
 | Features                    | v1-beta    | v2-alpha9  |
 |-----------------------------|------------|------------|
@@ -41,8 +54,8 @@ _Coming soon._
 | Progress displaying         | 🟡 raw     | ✔️         |
 | Multilingual TUI 🇺🇳       | 🟡 limited | ✔️         |
 | Configuration customization | ❌          | 🟡 partial | 
-| JPEG qualtiy customization  | ❌          | 🔄 planned |
-| TOML setting                | ❌          | 🔄 planned |
+| JPEG quality customization  | ❌          | 🔄 planned |
+| TOML process setting        | ❌          | 🔄 planned |
 
 ## Languages
  
@@ -51,7 +64,7 @@ TUI is multilingual thanks to "locales" base in the form of TOML files (`locales
 | Languages    | Locale  | Support    | Maintainer   |
 |--------------|---------|------------|--------------|
 | 🇺🇸 English | `en_us` | ✔️ 100 %   | @lumathieu   |
-| 🇫🇷 French  | `fr_fr` | ✔️ 100 %   | @lumathieu   |
+| 🇫🇷 French  | `fr_fr` | ✔️ 99 %    | @lumathieu   |
 | 🇮🇹 Italian | `it_it` | 🔄 planned | @lumathieu ? |
 
 ## Versions
@@ -67,7 +80,7 @@ Recommended to use a virtual environnement (venv).
 
 Entire project is developed and tested on **Python 3.11** (Windows x86-64).
 
-### Dépendances
+### Dependencies
 
 Core script uses following Python libraries (see also `requirements.txt`) :
 - `numpy`
@@ -76,11 +89,14 @@ Core script uses following Python libraries (see also `requirements.txt`) :
 - `tomlkit`
 - `tqdm`.
 
+It also uses [`ExifTool`](https://exiftool.org/) for frame geotagging.
+Call by a system command, this dependency is intended to be removed in future versions.
+
 ## Compatibility
 
 Code is designed to be platform-independent.
 
-Official supported platforms are Windows and Linux (partially tested under Debian / Ubuntu).
+At time, code as been "tested" on Windows and Linux platforms (partially under Debian / Ubuntu).
 
 ## Contribution
 

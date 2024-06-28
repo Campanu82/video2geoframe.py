@@ -18,7 +18,8 @@ facilement le traitement de la vidéo par la saisie pas-à-pas des paramètres.
 La saisie est guidée par une aide textuelle indiquant les valeurs attendues.
 
 Avant de lancer le script, vous avez besoin d'avoir :
-* un fichier vidéo avec son horodatage exact (début) en temps local ou UTC 
+* un fichier vidéo (max. 1h23 min)
+* connaître son horodatage exact (début) en temps local ou UTC 
 * un fichier de trace GPS propre couvrant la durée de la vidéo
 * un dossier de travail.
 
@@ -40,11 +41,11 @@ Il inclut également :
 * l'ajout de métadonnées avec les tags EXIF `artist`, `make`, `model` et `copyright` (cf. [documentation ExifTool](https://exiftool.org/TagNames/EXIF.html))
 * l'horodatage à la précision de la milliseconde
 * le support du temps local décalé par rapport à UTC.
-* l'ajout d'un décalage temporel pour mieux corréler la vidéo et la trace GPS.
+* l'ajout d'un décalage temporel pour corréler la vidéo et la trace GPS.
 
 Lors de l'export, un sous-dossier nommé selon la vidéo est créé automatiquement dans le répertoire de sortie.
 
-### Comparaison v1 / v2
+### Fonctionnalités v1 / v2
 
 | Fonctionnalité                       | v1-beta    | v2-alpha9    |
 |--------------------------------------|------------|--------------|
@@ -55,8 +56,8 @@ Lors de l'export, un sous-dossier nommé selon la vidéo est créé automatiquem
 | Affichage de la progression          | 🟡 brut    | ✔️           |
 | TUI multilingue 🇺🇳                 | 🟡 limitée | ✔️           |
 | Personnalisation de la configuration | ❌          | 🟡 partielle | 
-| Personnalisation qualité JPEG        | ❌          | 🔄 planifié  |
-| Paramétrage via TOML                 | ❌          | 🔄 planifié  |
+| Personnalisation qualité JPEG        | ❌          | 🔄 planifiée |
+| Paramétrage du traitement via TOML   | ❌          | 🔄 planifié  |
 
 ## Langues
  
@@ -65,7 +66,7 @@ La TUI est multilingue grâce une base de "locales" sous forme de fichiers TOML 
 | Langue        | Locale  | Support     | Mainteneur   |
 |---------------|---------|-------------|--------------|
 | 🇺🇸 Anglais  | `en_us` | ✔️ 100 %    | @lumathieu   |
-| 🇫🇷 Français | `fr_fr` | ✔️ 100 %    | @lumathieu   |
+| 🇫🇷 Français | `fr_fr` | ✔️ 99 %     | @lumathieu   |
 | 🇮🇹 Italien  | `it_it` | 🔄 planifié | @lumathieu ? |
 
 ## Versions
@@ -97,13 +98,13 @@ Appelée par une commande système, cette dépendance est prévue pour être sup
 
 Le code est conçu pour être indépendant de la plateforme.
 
-Les plateformes officiellement supportées sont Windows et Linux (partiellement testé sous Debian / Ubuntu).
+A ce jour, le code a été "testé" sur les plateformes Windows et Linux (partiellement sous Debian / Ubuntu).
 
 ## Contribution
 
 _A venir._
 
-Si vous intéressé pour contribuer au projet, vous pouvez envoyer un mail à campanu@luc-geo.fr.
+Si vous êtes intéressé pour contribuer au projet, vous pouvez envoyer un mail à campanu@luc-geo.fr.
 
 ## Licence
 
