@@ -6,12 +6,13 @@ Designed for contribution to street-level imagery projects like Mapillary or Pan
 
 ## Notes
 
-This program was originally designed for personal use to contribute to Mapillary and now to Panoramax with a smartphone
+This program was originally designed for personal use to contribute to Mapillary then Panoramax with a smartphone
 (video mode) or a dashcam.
 
 This v1 is the last version of the original code, published "as it is" with certain known bugs and limitations.
 
-Since June 2024, a v2 was started to develop with the aim of :
+Since June 2024, a [v2](https://git.luc-geo.fr/lumathieu/video2geoframes.py/src/branch/v2) was started to develop with
+the aim of :
 * enhance performances
 * fix known bugs
 * clean code
