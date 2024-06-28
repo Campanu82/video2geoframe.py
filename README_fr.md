@@ -18,7 +18,7 @@ facilement le traitement de la vidéo par la saisie pas-à-pas des paramètres.
 La saisie est guidée par une aide textuelle indiquant les valeurs attendues.
 
 Avant de lancer le script, vous avez besoin d'avoir :
-* un fichier vidéo (export limité à 10000 images)
+* un fichier vidéo (export limité à 100000 images)
 * connaître son horodatage exact (début) en temps local ou UTC 
 * un fichier de trace GPS propre couvrant la durée de la vidéo
 * un dossier de travail.
@@ -47,17 +47,17 @@ Lors de l'export, un sous-dossier nommé selon la vidéo est créé automatiquem
 
 ### Fonctionnalités v1 / v2
 
-| Fonctionnalité                       | v1-beta    | v2-alpha9    |
-|--------------------------------------|------------|--------------|
-| Support des vidéos timelapse         | ✔️         | ✔️           |
-| Écriture des tags EXIF               | ✔️         | ✔️           |
-| Support des tags étendus             | ✔️         | ❌            |
-| Support des millisecondes            | ✔️         | ✔️           |
-| Affichage de la progression          | 🟡 brut    | ✔️           |
-| TUI multilingue 🇺🇳                 | 🟡 limitée | ✔️           |
-| Personnalisation de la configuration | ❌          | 🟡 partielle | 
-| Personnalisation qualité JPEG        | ❌          | 🔄 planifiée |
-| Paramétrage du traitement via TOML   | ❌          | 🔄 planifié  |
+| Fonctionnalité                       | v1-beta      | v2-alpha9    |
+|--------------------------------------|--------------|--------------|
+| Support des vidéos timelapse         | ✔️           | ✔️           |
+| Écriture des tags EXIF               | ✔️           | ✔️           |
+| Support des tags étendus             | ✔️           | ❌            |
+| Support des millisecondes            | ✔️           | ✔️           |
+| Affichage de la progression          | 🟡 brut      | ✔️           |
+| TUI multilingue 🇺🇳                 | 🟡 2 langues | ✔️           |
+| Personnalisation de la configuration | ❌            | 🟡 partielle | 
+| Personnalisation qualité JPEG        | ❌            | 🔄 planifiée |
+| Paramétrage du traitement via TOML   | ❌            | 🔄 planifié  |
 
 ## Langues
  
@@ -91,14 +91,14 @@ Le script principal utilise les librairies Python suivantes (voir aussi `require
 - `tomlkit`
 - `tqdm`.
 
-Il utilise également le programme [`ExifTool`](https://exiftool.org/) pour le géotaguage des images.
+Il utilise également le programme [**ExifTool**](https://exiftool.org/) pour le géotaguage des images.
 Appelée par une commande système, cette dépendance est prévue pour être supprimée dans les versions futures.
 
 ## Compatibilité
 
 Le code est conçu pour être indépendant de la plateforme.
 
-A ce jour, le code a été "testé" sur les plateformes Windows et Linux (partiellement sous Debian / Ubuntu).
+À ce jour, le code a été "testé" sur les plateformes Windows et Linux (partiellement sous Debian / Ubuntu).
 
 ## Contribution
 

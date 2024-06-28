@@ -18,7 +18,7 @@ step-by-step parameter input.
 Input is guided by textual help indicating expected values.
 
 Before script starting, you need to have :
-* a video file (export limited to 10000 frames)
+* a video file (export limited to 100000 frames)
 * known the exact timestamp (start) in local time or UTC
 * a clean GPS tack file covering video duration
 * a working directory.
@@ -45,17 +45,17 @@ It also includes :
 
 ### Features v1 / v2
 
-| Features                    | v1-beta    | v2-alpha9  |
-|-----------------------------|------------|------------|
-| Timelapse video support     | ✔️         | ✔️         |
-| EXIF tags writing           | ✔️         | ✔️         |
-| Extended tags support       | ✔️         | ❌          |
-| Milliseconds support        | ✔️         | ✔️         |
-| Progress displaying         | 🟡 raw     | ✔️         |
-| Multilingual TUI 🇺🇳       | 🟡 limited | ✔️         |
-| Configuration customization | ❌          | 🟡 partial | 
-| JPEG quality customization  | ❌          | 🔄 planned |
-| TOML process setting        | ❌          | 🔄 planned |
+| Features                    | v1-beta        | v2-alpha9  |
+|-----------------------------|----------------|------------|
+| Timelapse video support     | ✔️             | ✔️         |
+| EXIF tags writing           | ✔️             | ✔️         |
+| Extended tags support       | ✔️             | ❌          |
+| Milliseconds support        | ✔️             | ✔️         |
+| Progress displaying         | 🟡 raw         | ✔️         |
+| Multilingual TUI 🇺🇳       | 🟡 2 languages | ✔️         |
+| Configuration customization | ❌              | 🟡 partial | 
+| JPEG quality customization  | ❌              | 🔄 planned |
+| TOML process setting        | ❌              | 🔄 planned |
 
 ## Languages
  
@@ -89,7 +89,7 @@ Core script uses following Python libraries (see also `requirements.txt`) :
 - `tomlkit`
 - `tqdm`.
 
-It also uses [`ExifTool`](https://exiftool.org/) for frame geotagging.
+It also uses [**ExifTool**](https://exiftool.org/) for frame geotagging.
 Call by a system command, this dependency is intended to be removed in future versions.
 
 ## Compatibility
