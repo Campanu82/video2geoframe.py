@@ -24,7 +24,7 @@ the aim of :
 | Report                                                                                               | Workaround                                            |
 |------------------------------------------------------------------------------------------------------|-------------------------------------------------------|
 | [bug] in non-timelapse mode, **FFmpeg** doesn't extract first video frame and shifts every timestamp | 🔃 adding chosen framesampling interval to GPS offset |
-| [bug] **ExifTool** timestamp very long (~1 frame / s)                                                | ❌                                                     |  
+| [bug] **ExifTool** timestamp very long (< 1 frame / s)                                               | ❌                                                     |  
 | [bug] uncontrolled incrementation if export directory is on a Samba share (ZFS)                      | ❌                                                     |
 | 9999 frames limit (naming model)                                                                     | ❌                                                     |
 
