@@ -20,7 +20,7 @@ La saisie est guidée par une aide textuelle indiquant les valeurs attendues.
 Avant de lancer le script, vous avez besoin d'avoir :
 * un fichier vidéo (export limité à 100000 images)
 * connaître son horodatage exact (début) en temps local ou UTC 
-* un fichier de trace GPS propre couvrant la durée de la vidéo
+* un fichier de trace GPS propre couvrant la durée de la vidéo (cf. [_Geotagging with ExifTool_](https://exiftool.org/geotag.html) pour les formats acceptés)
 * un dossier de travail.
 
 ## Documentation
@@ -41,7 +41,7 @@ Il inclut également :
 * l'ajout de métadonnées avec les tags EXIF `artist`, `make`, `model` et `copyright` (cf. [_EXIF Tags_](https://exiftool.org/TagNames/EXIF.html))
 * l'horodatage à la précision de la milliseconde
 * le support du temps local décalé par rapport à UTC.
-* l'ajout d'un décalage temporel pour corréler la vidéo et la trace GPS (cf. [_Geotagging with ExifTool_](https://exiftool.org/geotag.html) pour les formats acceptés).
+* l'ajout d'un décalage temporel pour corréler la vidéo et la trace GPS.
 
 Lors de l'export, un sous-dossier nommé selon la vidéo est créé automatiquement dans le répertoire de sortie.
 
