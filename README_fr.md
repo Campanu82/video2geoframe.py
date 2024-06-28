@@ -18,7 +18,7 @@ facilement le traitement de la vidéo par la saisie pas-à-pas des paramètres.
 La saisie est guidée par une aide textuelle indiquant les valeurs attendues.
 
 Avant de lancer le script, vous avez besoin d'avoir :
-* un fichier vidéo (max. 1h23 min)
+* un fichier vidéo (export limité à 10000 images)
 * connaître son horodatage exact (début) en temps local ou UTC 
 * un fichier de trace GPS propre couvrant la durée de la vidéo
 * un dossier de travail.

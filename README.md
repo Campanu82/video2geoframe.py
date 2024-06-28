@@ -18,7 +18,7 @@ step-by-step parameter input.
 Input is guided by textual help indicating expected values.
 
 Before script starting, you need to have :
-* a video file (max. 1h23 min)
+* a video file (export limited to 10000 frames)
 * known the exact timestamp (start) in local time or UTC
 * a clean GPS tack file covering video duration
 * a working directory.
