@@ -38,10 +38,10 @@ Le programme permet d'exécuter en un seul traitement les tâches suivantes :
 Il inclut également :
 * le support des vidéos timelapse
 * le redimensionnement des images à une résolution inférieure à la vidéo d'origine tout en conservant le ratio
-* l'ajout de métadonnées avec les tags EXIF `artist`, `make`, `model` et `copyright` (cf. [documentation ExifTool](https://exiftool.org/TagNames/EXIF.html))
+* l'ajout de métadonnées avec les tags EXIF `artist`, `make`, `model` et `copyright` (cf. [_EXIF Tags_](https://exiftool.org/TagNames/EXIF.html))
 * l'horodatage à la précision de la milliseconde
 * le support du temps local décalé par rapport à UTC.
-* l'ajout d'un décalage temporel pour corréler la vidéo et la trace GPS.
+* l'ajout d'un décalage temporel pour corréler la vidéo et la trace GPS (cf. [_Geotagging with ExifTool_](https://exiftool.org/geotag.html) pour les formats acceptés).
 
 Lors de l'export, un sous-dossier nommé selon la vidéo est créé automatiquement dans le répertoire de sortie.
 

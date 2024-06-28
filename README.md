@@ -20,7 +20,7 @@ Input is guided by textual help indicating expected values.
 Before script starting, you need to have :
 * a video file (export limited to 100000 frames)
 * known the exact timestamp (start) in local time or UTC
-* a clean GPS tack file covering video duration
+* a clean GPS tack file covering video duration (see [_Geotagging with ExifTool_](https://exiftool.org/geotag.html) for accepted formats)
 * a working directory.
 
 ## Documentation
@@ -38,7 +38,7 @@ Program allows in one process to execute following tasks :
 It also includes :
 * timelapse video support
 * frame resizing to a less resolution than original video with ratio keeping
-* metadata adding in EXIF tags `artist`, `make`, `model` et `copyright` (see [documentation ExifTool](https://exiftool.org/TagNames/EXIF.html))
+* metadata adding in EXIF tags `artist`, `make`, `model` et `copyright` (see [_EXIF Tags_](https://exiftool.org/TagNames/EXIF.html))
 * millisecond accuracy timestamp
 * local time support with UTC offset
 * temporal offset adding for correlate video and GPS.
