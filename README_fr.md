@@ -107,7 +107,7 @@ Si vous intéressé pour contribuer au projet, vous pouvez envoyer un mail à ca
 
 ## Licence
 
-Ce dépôt, à l'exception des dépendances, est sous licence **GNU AGPL v3**.
+Ce dépôt, à l'exception des dépendances, est sous licence **GNU GPL v3**.
 
 Les dépendances sont incluses au dépôt pour le développement et restent sous leur licence d'origine
 (voir `dependencies/EXTRA_LICENSES.md`).

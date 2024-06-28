@@ -90,7 +90,7 @@ If you are interested to project contribution, you can send a mail to campanu@lu
 
 ## License
 
-This repository, except dependencies, is licensed under **GNU AGPL v3**.
+This repository, except dependencies, is licensed under **GNU GPL v3**.
 
 Dependencies are included in repository for development and keep their original license
 (see `dependencies/EXTRA_LICENSES.md`).
