@@ -1,7 +1,7 @@
 # Localization file for video2geoframes.py
 # French (France)
 #
-# Last edition : 2024-06-23
+# Last edition : 2024-07-01
 
 [ui]
 
@@ -10,16 +10,30 @@ title = "# video2geoframes.py"
 intro = """Bienvenue dans le script video2geoframes.py !
 Ce script permet, à partir d'une vidéo et d'une trace GPS, de créer un ensemble de photos géotaguées."""
 end = "Fin du programme, appuyez sur Entrée pour fermer."
+cancel = "Annulation... entrée vide sur un paramètre requis."
 paths_title = "## Chemins"
 tags_title = "## Tags additionnels"
 parameters_title = "## Paramètres du traitement"
-metadatas = """{} ({} {}B)
+metadata = """{} ({} {}B)
 - Durée : {} s
 - Heure de début : {}.{}
 - Décalage horaire : {}"""
 
-[ui.units]
+[ui.error]
+not_implemented = "Désolé, cette fonction n'est pas encore implémentée, chantier en cours ;)"
+file_not_found = "'{}' non-trouvé."
+invalid_toml_key = "Erreur... clé invalide trouvée dans le fichier TOML, vérifiez les valeurs."
+
+[ui.unit]
 cv2_tqdm = 'image(s)'
+
+[ui.toml_setting]
+incomplete_err = "{} {} manquant(s) dans le fichier TOML de paramétrage."
+video_file = "Fichier vidéo : {}"
+gps_track_file = "Fichier de trace GPS : {}"
+timelapse_mode = "Timelapse à {} ips"
+classic_mode = "Échantillonnage de {} s"
+resizing = "Redimensionnement de {}p vers {}p"
 
 [ui.parameters]
 toml_setting = "Paramétrage avec un fichier TOML ({}/{}) ? "
@@ -50,13 +64,14 @@ output_folder = "Entrez le dossier de sortie : "
 
 path_err = "Erreur... le fichier n'existe pas."
 
-[ui.metadatas]
+[ui.metadata]
 make = "Entrez la marque du capteur : "
 model = "Entrez le modèle du capteur : "
 author = "Entrez l'auteur : "
 
 [processing]
-reading_metadatas = "Lecture des métadonnées de la vidéo..."
+reading_toml_setting = "Lecture du fichier TOML de paramétrage..."
+reading_metadata = "Lecture des métadonnées de la vidéo..."
 sampling = "Extraction des images depuis la vidéo..."
 timestamping = "Définition de l'horodatage des images..."
 geotagging = "Géotaguage des images..."

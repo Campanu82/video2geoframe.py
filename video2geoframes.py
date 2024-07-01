@@ -8,7 +8,7 @@ Designed for contribution to street-level imagery projects like Mapillary or Pan
 
 __author__ = "Lucas MATHIEU (@campanu)"
 __license__ = "GPL-3.0-or-later"
-__version__ = "2.0-alpha9"
+__version__ = "2.0-alpha10"
 __maintainer__ = "Lucas MATHIEU (@campanu)"
 __email__ = "campanu@luc-geo.fr"
 
@@ -71,6 +71,7 @@ def existing_items(expected_items: list, items: list):
 
 def list_enumerator(item_list: list, intermediate_separator: str, last_separator: str):
     i = 1
+    enumerated_list = []
 
     for it in item_list:
         if i == 1:
@@ -85,6 +86,18 @@ def list_enumerator(item_list: list, intermediate_separator: str, last_separator
     return enumerated_list
 
 
+def video_metadata_reader(video_path: str):
+    video_md = {}
+
+    video = cv2.VideoCapture(video_path)
+    video_md['fps'] = video.get(cv2.CAP_PROP_FPS)
+    video_md['width'] = video.get(cv2.CAP_PROP_FRAME_WIDTH)
+    video_md['height'] = video.get(cv2.CAP_PROP_FRAME_HEIGHT)
+    video_md['frame_number'] = int(video.get(cv2.CAP_PROP_FRAME_COUNT))
+
+    return video_md
+
+
 # Start
 print("# video2geoframes.py (v{})\n".format(__version__))
 
@@ -95,6 +108,11 @@ conf_file_err = False
 
 # Default values
 mandatory_parameters = ['locale', 'exiftool_path']
+mandatory_settings1 = ['video_file', 'gps_track_file', 'output_folder']
+mandatory_settings2 = ['frame_sampling']
+mandatory_settings3 = ['timelapse', 'start_datetime', 'rec_timezone']
+optional_settings = ['frame_height', 'time_offset']
+minimal_md = ['author', 'camera_maker', 'camera_model']
 locale = 'en_us'
 min_frame_samp = 0.5
 max_frame_samp = 60.0
@@ -135,10 +153,10 @@ try:
 
             print("(!) {} {} missing in configuration file.".format(missing_parameters_list, verb))
             raise ValueError
-
-        # Configuration assignment
-        locale = conf_toml['system']['locale']
-        exiftool_path = unix_path(conf_toml['system']['exiftool_path']).replace('./', '{}/'.format(base_path))
+        else:
+            # Configuration assignment
+            locale = conf_toml['system']['locale']
+            exiftool_path = unix_path(conf_toml['system']['exiftool_path']).replace('./', '{}/'.format(base_path))
     except (FileNotFoundError, ValueError):
         print("\nError... configuration file doesn't exists or invalid.")
         default_conf = str(input("Use default configuration instead (Y/N) ? ").upper())
@@ -167,28 +185,145 @@ try:
     # User input
     # TOML setting file
     toml_setting = input('\n{}'.format(locale_toml['ui']['parameters']['toml_setting'].format(user_agree, user_disagree)))
-    i = 0
 
-    if toml_setting.upper() == 'O':
+    if toml_setting.upper() == user_agree:
+        # TOML setting file path input
         while True:
-            try:
-                i += 1
-                toml_file_path = unix_path(input('{}'.format(locale_toml['ui']['paths']['toml_file']))).strip()
+            toml_setting_path = unix_path(input('{}'.format(locale_toml['ui']['paths']['toml_file']))).strip()
 
-                if os.path.exists(toml_file_path):
-                    with codecs.open(toml_file_path, mode='r', encoding='utf-8') as f:
-                        setting_toml = loads(f.read())
-                        f.close()
-                    break
-                else:
-                    raise FileNotFoundError
-            except (FileNotFoundError, ValueError):
+            if os.path.exists(toml_setting_path):
+                break
+            elif toml_setting_path == '':
+                print('{}'.format(locale_toml['ui']['info']['cancel']))
+                raise InterruptedError
+            else:
                 print('{}\n'.format(locale_toml['ui']['paths']['path_err']))
                 True
 
-        # <--coding in progress-->
-        raise NotImplementedError
+        # TOML file checking
+        print("\n{}".format(locale_toml['processing']['reading_toml_setting']))
 
+        try:
+            if os.path.exists(toml_setting_path):
+                with codecs.open(toml_setting_path, mode='r', encoding='utf-8') as f:
+                    setting_toml = loads(f.read())
+                    f.close()
+
+                reading_settings1 = setting_toml['paths'].keys()
+                reading_settings2 = setting_toml['process_settings'].keys()
+                reading_settings3 = setting_toml['video'].keys()
+                reading_metadata = setting_toml['metadata'].keys()
+
+                check_settings1 = existing_items(mandatory_settings1, reading_settings1)
+                check_settings2 = existing_items(mandatory_settings2, reading_settings2)
+                check_settings3 = existing_items(mandatory_settings3, reading_settings3)
+                check_metadata = existing_items(minimal_md, reading_metadata)
+
+                missing_settings = []
+                missing_settings.extend(check_settings1['missing'])
+                missing_settings.extend(check_settings2['missing'])
+                missing_settings.extend(check_settings3['missing'])
+
+                missing_metadata = check_metadata['missing']
+
+                if len(missing_settings) > 0:
+                    missing_settings_list = list_enumerator(missing_settings, ', ', ' and ')
+
+                    if len(missing_settings) == 1:
+                        verb = 'is'
+                    else:
+                        verb = 'are'
+
+                    print("(!) {}".format(locale_toml['ui']['toml_setting']['incomplete_err'].format(missing_settings_list, verb)))
+                    raise ValueError
+                else:
+                    video_path = unix_path(setting_toml['paths']['video_file'])
+
+                    if os.path.exists(video_path):
+                        print('> {}'.format(locale_toml['ui']['toml_setting']['video_file'].format(video_path)))
+                        video_md = video_metadata_reader(video_path)
+
+                        if video_md['frame_number'] > 0:
+                            video_fps = video_md['fps']
+                            video_width = video_md['width']
+                            video_height = video_md['height']
+                            video_frame_number = video_md['frame_number']
+                        else:
+                            raise ValueError
+                    else:
+                        current_file = video_path
+                        raise FileNotFoundError
+
+                    gps_track_path = unix_path(setting_toml['paths']['gps_track_file'])
+
+                    if os.path.exists(gps_track_path):
+                        print('> {}'.format(locale_toml['ui']['toml_setting']['gps_track_file'].format(gps_track_path)))
+                    else:
+                        current_file = gps_track_path
+                        raise FileNotFoundError
+
+                    output_folder = unix_path(setting_toml['paths']['output_folder'])
+
+                    timelapse = bool(setting_toml['video']['timelapse'][0])
+                    timelapse_fps = int(setting_toml['video']['timelapse'][1])
+
+                    if timelapse and min_timelapse_fps <= timelapse_fps <= max_timelapse_fps:
+                        print("> {}".format(locale_toml['ui']['toml_setting']['timelapse_mode'].format(timelapse_fps)))
+                    elif timelapse and (timelapse_fps < min_timelapse_fps or timelapse_fps > max_timelapse_fps):
+                        raise ValueError
+                    else:
+                        frame_sampling = float(setting_toml['process_settings']['frame_sampling'])
+                        print("> {}".format(locale_toml['ui']['toml_setting']['classic_mode'].format(frame_sampling)))
+
+                        if min_frame_samp <= frame_sampling <= max_frame_samp:
+                            video_start_datetime_obj = setting_toml['video']['start_datetime']
+                        else:
+                            raise ValueError
+
+                    video_rec_timezone = str(setting_toml['video']['rec_timezone'])
+
+                    if 'time_offset' in setting_toml['process_settings']:
+                        time_offset = setting_toml['process_settings']['time_offset']
+
+                        if time_offset != 0:
+                            if min_time_offset >= time_offset >= max_time_offset:
+                                time_offset = float(time_offset)
+                            else:
+                                raise ValueError
+                        else:
+                            time_offset = 0
+
+                    if video_height <= max_frame_height:
+                        max_frame_height = int(round(video_height, 0))
+
+                    if 'frame_height' in setting_toml['process_settings']:
+                        frame_height = int(setting_toml['process_settings']['frame_height'])
+
+                        if min_frame_height <= frame_height <= max_frame_height:
+                            print("> {}".format(locale_toml['ui']['toml_setting']['resizing'].format(video_height, frame_height)))
+                            pass
+                        elif frame_height == 0 or frame_height > max_frame_height:
+                            frame_height = max_frame_height
+                        elif frame_height < min_frame_height:
+                            print("> {}".format(locale_toml['ui']['toml_setting']['resizing'].format(video_height, min_frame_height)))
+                            frame_height = min_frame_height
+                    else:
+                        print("> {}".format(locale_toml['ui']['toml_setting']['resizing'].format(video_height, max_frame_height)))
+                        frame_height = max_frame_height
+
+                if len(missing_metadata) > 0:
+                    raise ValueError
+                else:
+                    author = setting_toml['metadata']['author']
+                    make = setting_toml['metadata']['camera_maker']
+                    model = setting_toml['metadata']['camera_model']
+            else:
+                current_file = toml_setting_path
+                raise FileNotFoundError
+        except FileNotFoundError:
+            print('(!) {}'.format(locale_toml['ui']['error']['file_not_found'].format(current_file)))
+        except ValueError:
+            print('{}'.format(locale_toml['ui']['error']['invalid_toml_key']))
     # Paths
     else:
         print('\n{}'.format(locale_toml['ui']['info']['paths_title']))
@@ -206,12 +341,12 @@ try:
                 print('{}\n'.format(locale_toml['ui']['paths']['path_err']))
                 True
 
-        # Video metadatas extraction
-        video = cv2.VideoCapture(video_path)
-        video_fps = video.get(cv2.CAP_PROP_FPS)
-        video_width = video.get(cv2.CAP_PROP_FRAME_WIDTH)
-        video_height = video.get(cv2.CAP_PROP_FRAME_HEIGHT)
-        video_total_frames = int(video.get(cv2.CAP_PROP_FRAME_COUNT))
+        # Video metadata extraction
+        video_md = video_metadata_reader(video_path)
+        video_fps = video_md['fps']
+        video_width = video_md['width']
+        video_height = video_md['height']
+        video_frame_number = video_md['frame_number']
 
         # GPS track file
         while True:
@@ -319,23 +454,24 @@ try:
         # User-defined metadata
         print('\n{}'.format(locale_toml['ui']['info']['tags_title']))
 
-        make = input(locale_toml['ui']['metadatas']['make'])
-        model = input(locale_toml['ui']['metadatas']['model'])
-        author = input(locale_toml['ui']['metadatas']['author'])
+        make = input(locale_toml['ui']['metadata']['make'])
+        model = input(locale_toml['ui']['metadata']['model'])
+        author = input(locale_toml['ui']['metadata']['author'])
 
-    # Video metadatas formatting
-    print('\n{}'.format(locale_toml['processing']['reading_metadatas']))
+    # Video metadata formatting
+    print('\n{}'.format(locale_toml['processing']['reading_metadata']))
+    video = cv2.VideoCapture(video_path)
 
     video_file_name = os.path.basename(video_path)
     video_file_size = byte_multiple(os.stat(video_path).st_size)
-    video_duration = video_total_frames / video_fps
+    video_duration = video_frame_number / video_fps
 
     video_start_datetime_obj = video_start_datetime_obj + timedelta(seconds=time_offset)
     video_start_datetime = video_start_datetime_obj.strftime('%Y-%m-%d %H:%M:%S')
     video_start_subsectime = int(int(video_start_datetime_obj.strftime('%f')) / 1000)
 
-    # Metadatas recap
-    print('\n{}'.format(locale_toml['ui']['info']['metadatas'].format(video_file_name,
+    # metadata recap
+    print('\n{}'.format(locale_toml['ui']['info']['metadata'].format(video_file_name,
                                                                       round(video_file_size[0], 3), video_file_size[1],
                                                                       video_duration, video_start_datetime,
                                                                       '{:03d}'.format(video_start_subsectime),
@@ -356,7 +492,7 @@ try:
     else:
         frame_interval = frame_sampling
 
-    cv2_tqdm_unit = locale_toml['ui']['units']['cv2_tqdm']
+    cv2_tqdm_unit = locale_toml['ui']['unit']['cv2_tqdm']
     cv2_tqdm_range = int(video_duration / frame_interval)
 
     for i in tqdm(range(cv2_tqdm_range), unit=cv2_tqdm_unit):
@@ -421,7 +557,7 @@ try:
     # End
     input('\n{}'.format(locale_toml['ui']['info']['end']))
 except NotImplementedError:
-    print("\nSorry, this function is not implemented, work in progress ;)")
+    print('\n{}'.format(locale_toml['ui']['error']['not_implemented']))
 except InterruptedError:
     input("\nEnd of program, press Enter to quit.")
 

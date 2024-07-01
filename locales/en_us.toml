@@ -1,25 +1,39 @@
 # Localization file for video2geoframes.py
 # English (US / World)
 #
-# Last edition : 2024-06-23
+# Last edition : 2024-07-01
 
 [ui]
 
 [ui.info]
 title = "# video2geoframes.py"
 intro = """Welcome in video2geoframes.py script !
-This script is designed to create geotagged frames from video and GPX track."""
+This script is designed to create geotagged frames from video and GPS track."""
 end = "End of program, press Enter to quit."
+cancel = "Cancelling... empty input on required setting."
 paths_title = "## Paths"
 parameters_title = "## Process parameters"
 tags_title = "## Additional tags"
-metadata = """{} ({} {}B)\n
-- Duration : {} s\n
-- Start time : {}.{}\n
+metadata = """{} ({} {}B)
+- Duration : {} s
+- Start time : {}.{}
 - Time offset : {}"""
 
-[ui.units]
+[ui.error]
+not_implemented = "Sorry, this function is not implemented, work in progress ;)"
+file_not_found = "'{}' not found."
+invalid_toml_key = "Error... invalid key found in TOML file, please check values."
+
+[ui.unit]
 cv2_tqdm = 'frame(s)'
+
+[ui.toml_setting]
+incomplete_err = "{} {} missing in TOML setting file."
+video_file = "Video file : {}"
+gps_track_file = "GPS track file : {}"
+timelapse_mode = "{} fps timelapse"
+classic_mode = "{} s sampling"
+resizing = "Resizing from {}p to {}p"
 
 [ui.parameters]
 toml_setting = "Setting with TOML file ({}/{}) ? "
@@ -48,15 +62,16 @@ video_file = "Enter video path : "
 gps_track = "Enter GPS track path : "
 output_folder = "Enter output folder : "
 
-path_err = "Error... File doesn't exist."
+path_err = "Error... file doesn't exist."
 
-[ui.metadatas]
+[ui.metadata]
 make = "Enter the camera brand : "
 model = "Enter the camera model : "
 author = "Enter author name : "
 
 [processing]
-reading_metadatas = "Reading video metadatas..."
+reading_toml_setting = "Reading TOML setting file..."
+reading_metadata = "Reading video metadata..."
 sampling = "Extracting frames from video..."
 timestamping = "Setting timestamp on frames..."
 geotagging = "Geotagging frames..."

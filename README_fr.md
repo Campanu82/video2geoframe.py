@@ -47,7 +47,7 @@ Lors de l'export, un sous-dossier nommé selon la vidéo est créé automatiquem
 
 ### Fonctionnalités v1 / v2
 
-| Fonctionnalité                       | v1-beta      | v2-alpha9    |
+| Fonctionnalité                       | v1-beta      | v2-alpha10   |
 |--------------------------------------|--------------|--------------|
 | Support des vidéos timelapse         | ✔️           | ✔️           |
 | Écriture des tags EXIF               | ✔️           | ✔️           |
@@ -57,7 +57,7 @@ Lors de l'export, un sous-dossier nommé selon la vidéo est créé automatiquem
 | TUI multilingue 🇺🇳                 | 🟡 2 langues | ✔️           |
 | Personnalisation de la configuration | ❌            | 🟡 partielle | 
 | Personnalisation qualité JPEG        | ❌            | 🔄 planifiée |
-| Paramétrage du traitement via TOML   | ❌            | 🔄 planifié  |
+| Paramétrage du traitement via TOML   | ❌            | ✔️           |
 
 ## Langues
  

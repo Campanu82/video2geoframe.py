@@ -1,0 +1,33 @@
+# Sample process setting file for video2geoframes.py
+# See documentation for more information
+#
+# Last edition : 2024-06-30
+
+# Mandatory section
+[paths]
+video_file = "F:/_temp/Panoramax/01_Sessions/20240525_Vazerac_Molieres_Lafrancaise/2024_0525_083912_F.MP4"
+gps_track_file = "F:/_temp/Panoramax/01_Sessions/20240525_Vazerac_Molieres_Lafrancaise/20240525_track_1.gpx"
+output_folder = "Test_1"
+
+# Mandatory section for gdal_translate
+# See https://gdal.org/drivers/raster/cog.html for more details on values
+[video]
+# For timelapse, indicate if video is timelapsed and interval between frames
+timelapse = [false, 60]
+start_datetime = 2024-06-30T23:32:00.000
+rec_timezone = "+02:00"
+
+[process_settings]
+# Mandatory but ignored if video.timelapse = [true, x]
+frame_sampling = 2
+
+# Optional section
+# Settings ignored if set to 0
+frame_height = 1080
+time_offset = +0.0
+
+# Optional section, overwritting default configuration if set
+[metadata]
+author = "Campanu"
+camera_maker = "One"
+camera_model = "Super Cam"

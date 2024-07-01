@@ -45,7 +45,7 @@ It also includes :
 
 ### Features v1 / v2
 
-| Features                    | v1-beta        | v2-alpha9  |
+| Features                    | v1-beta        | v2-alpha10 |
 |-----------------------------|----------------|------------|
 | Timelapse video support     | ✔️             | ✔️         |
 | EXIF tags writing           | ✔️             | ✔️         |
@@ -55,7 +55,7 @@ It also includes :
 | Multilingual TUI 🇺🇳       | 🟡 2 languages | ✔️         |
 | Configuration customization | ❌              | 🟡 partial | 
 | JPEG quality customization  | ❌              | 🔄 planned |
-| TOML process setting        | ❌              | 🔄 planned |
+| TOML process setting        | ❌              | ✔️         |
 
 ## Languages
  
