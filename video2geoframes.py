@@ -501,10 +501,10 @@ try:
         ret, frame = video.read()
 
         # Image resizing
-        if frame_height != 0:
-            resize_factor = video_height / frame_height
+        if frame_height != video_height:
+            resize_factor = frame_height / video_height
             image_height = frame_height
-            image_width = int(round(video_height * resize_factor, 0))
+            image_width = int(round(video_width * resize_factor, 0))
 
             frame = cv2.resize(frame, (image_width, image_height), interpolation=cv2.INTER_LANCZOS4)
 
