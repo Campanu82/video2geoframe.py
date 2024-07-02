@@ -8,7 +8,7 @@ Designed for contribution to street-level imagery projects like Mapillary or Pan
 
 __author__ = "Lucas MATHIEU (@campanu)"
 __license__ = "GPL-3.0-or-later"
-__version__ = "2.0-alpha10"
+__version__ = "2.0-alpha11"
 __maintainer__ = "Lucas MATHIEU (@campanu)"
 __email__ = "campanu@luc-geo.fr"
 
@@ -94,6 +94,7 @@ def video_metadata_reader(video_path: str):
     video_md['width'] = video.get(cv2.CAP_PROP_FRAME_WIDTH)
     video_md['height'] = video.get(cv2.CAP_PROP_FRAME_HEIGHT)
     video_md['frame_number'] = int(video.get(cv2.CAP_PROP_FRAME_COUNT))
+    video = None
 
     return video_md
 
@@ -512,7 +513,7 @@ try:
         image_name = "{}_f{}.jpg".format(video_file_name.split('.')[0], frame_name)
         image_path = "{}/{}".format(output_folder, image_name)
 
-        cv2.imwrite(image_path, frame, [cv2.IMWRITE_JPEG_QUALITY, 88, cv2.IMWRITE_JPEG_PROGRESSIVE, 1, cv2.IMWRITE_JPEG_SAMPLING_FACTOR, 0x411111])
+        cv2.imwrite(image_path, frame, [cv2.IMWRITE_JPEG_QUALITY, 88, cv2.IMWRITE_JPEG_PROGRESSIVE, 1, cv2.IMWRITE_JPEG_SAMPLING_FACTOR, 0x111111])
 
         # Time tags formatting
         time_shift = i * frame_sampling
