@@ -513,7 +513,7 @@ try:
         image_name = "{}_f{}.jpg".format(video_file_name.split('.')[0], frame_name)
         image_path = "{}/{}".format(output_folder, image_name)
 
-        cv2.imwrite(image_path, frame, [cv2.IMWRITE_JPEG_QUALITY, 88, cv2.IMWRITE_JPEG_PROGRESSIVE, 1, cv2.IMWRITE_JPEG_SAMPLING_FACTOR, 0x111111])
+        cv2.imwrite(image_path, frame, [cv2.IMWRITE_JPEG_QUALITY, 88, cv2.IMWRITE_JPEG_PROGRESSIVE, 1, cv2.IMWRITE_JPEG_SAMPLING_FACTOR, 0x221111])
 
         # Time tags formatting
         time_shift = i * frame_sampling
