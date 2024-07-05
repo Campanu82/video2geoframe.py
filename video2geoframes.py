@@ -8,7 +8,7 @@ Designed for contribution to street-level imagery projects like Mapillary or Pan
 
 __author__ = "Lucas MATHIEU (@campanu)"
 __license__ = "GPL-3.0-or-later"
-__version__ = "2.0-alpha11"
+__version__ = "2.0-alpha12"
 __maintainer__ = "Lucas MATHIEU (@campanu)"
 __email__ = "campanu@luc-geo.fr"
 
@@ -535,11 +535,9 @@ try:
 
         exif_tags = {
             piexif.ExifIFD.DateTimeOriginal: current_datetime,
+            piexif.ExifIFD.SubSecTime: str(current_subsec_time),
             piexif.ExifIFD.OffsetTimeOriginal: video_rec_timezone
         }
-
-        if current_subsec_time > 0:
-            exif_tags[piexif.ExifIFD.SubSecTime] = str(current_subsec_time)
 
         image_exif['0th'] = image_tags
         image_exif['Exif'] = exif_tags
