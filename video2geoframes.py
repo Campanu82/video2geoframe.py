@@ -535,7 +535,7 @@ try:
 
         exif_tags = {
             piexif.ExifIFD.DateTimeOriginal: current_datetime,
-            piexif.ExifIFD.SubSecTime: str(current_subsec_time),
+            piexif.ExifIFD.SubSecTimeOriginal: str(current_subsec_time),
             piexif.ExifIFD.OffsetTimeOriginal: video_rec_timezone
         }
 
