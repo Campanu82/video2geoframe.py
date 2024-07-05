@@ -274,20 +274,20 @@ try:
                         raise ValueError
                     else:
                         frame_sampling = float(setting_toml['process_settings']['frame_sampling'])
-                        print("> {}".format(locale_toml['ui']['toml_setting']['classic_mode'].format(frame_sampling)))
 
                         if min_frame_samp <= frame_sampling <= max_frame_samp:
-                            video_start_datetime_obj = setting_toml['video']['start_datetime']
+                            print("> {}".format(locale_toml['ui']['toml_setting']['classic_mode'].format(frame_sampling)))
                         else:
                             raise ValueError
 
+                    video_start_datetime_obj = setting_toml['video']['start_datetime']
                     video_rec_timezone = str(setting_toml['video']['rec_timezone'])
 
                     if 'time_offset' in setting_toml['process_settings']:
                         time_offset = setting_toml['process_settings']['time_offset']
 
                         if time_offset != 0:
-                            if min_time_offset >= time_offset >= max_time_offset:
+                            if min_time_offset <= time_offset <= max_time_offset:
                                 time_offset = float(time_offset)
                             else:
                                 raise ValueError
@@ -372,13 +372,14 @@ try:
         timelapse = input(locale_toml['ui']['parameters']['timelapse'].format(user_agree, user_disagree)).upper()
 
         if timelapse == user_agree:
+            timelapse = True
+
             # Timelapse framerate parameter
             while True:
                 try:
                     timelapse_fps = int(input(locale_toml['ui']['parameters']['timelapse_fps'].format(min_timelapse_fps,
                                                                                                       max_timelapse_fps)))
                     if max_timelapse_fps >= timelapse_fps >= min_timelapse_fps:
-                        frame_sampling = float(1 / timelapse_fps)
                         break
                     else:
                         print('\n{}'.format(locale_toml['ui']['parameters']['timelapse_fps_err'].format(min_timelapse_fps,
@@ -387,7 +388,6 @@ try:
                 except ValueError:
                     print('\n{}'.format(locale_toml['ui']['parameters']['timelapse_fps_err'].format(min_timelapse_fps, max_timelapse_fps)))
                     True
-
         else:
             # Frame sampling parameter
             while True:
@@ -488,16 +488,17 @@ try:
 
     i = 0
 
-    if timelapse == user_agree:
-        frame_interval = frame_sampling / video_fps
+    if timelapse == True:
+        frame_sampling = float(1 / video_fps)
+        frame_interval = float(1 / timelapse_fps)
     else:
         frame_interval = frame_sampling
 
     cv2_tqdm_unit = locale_toml['ui']['unit']['cv2_tqdm']
-    cv2_tqdm_range = int(video_duration / frame_interval)
+    cv2_tqdm_range = int(video_duration / frame_sampling)
 
     for i in tqdm(range(cv2_tqdm_range), unit=cv2_tqdm_unit):
-        t = frame_interval * i * 1000
+        t = frame_sampling * i * 1000
         video.set(cv2.CAP_PROP_POS_MSEC, t)
         ret, frame = video.read()
 
@@ -516,7 +517,7 @@ try:
         cv2.imwrite(image_path, frame, [cv2.IMWRITE_JPEG_QUALITY, 88, cv2.IMWRITE_JPEG_PROGRESSIVE, 1, cv2.IMWRITE_JPEG_SAMPLING_FACTOR, 0x221111])
 
         # Time tags formatting
-        time_shift = i * frame_sampling
+        time_shift = i * frame_interval
         current_datetime_obj = video_start_datetime_obj + timedelta(seconds=time_shift)
         current_datetime = current_datetime_obj.strftime('%Y:%m:%d %H:%M:%S')
         current_subsec_time = int(int(current_datetime_obj.strftime('%f')) / 1000)
